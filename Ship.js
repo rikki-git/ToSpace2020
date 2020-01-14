@@ -143,6 +143,7 @@ class Ship {
         }
 
         this.Rotate(this.tObject.rotation.z);
+        this.UpdateShipStats();
     }
 
     DisposePlaceables() {
