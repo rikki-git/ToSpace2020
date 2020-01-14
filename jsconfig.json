@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "target": "ES6",
+        "checkJs": true
+    },
+    "typeAcquisition": {
+        "include": [
+            "jquery",
+            "three"
+        ]
+    }
+}
