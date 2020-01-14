@@ -17,9 +17,24 @@ const Parts = {
     bridgeT: "bridgeT",
     engine: "engine",
     hub: "hub",
+    hub2: "hub2",
     bridge_cross: "bridge_cross",
     tilep_00: "tilep_00",
-    tilep_01: "tilep_01"
+    tilep_01: "tilep_01",
+    tiler_00: "tiler_00",
+    tiler_01: "tiler_01",
+    tilep_02: "tilep_02",
+    tilep_03: "tilep_03",
+    tiler_02: "tiler_02",
+    tiler_03: "tiler_03",
+    gyro_00: "gyro_00",
+    laser: "laser",
+    turret_02: "turret_02",
+}
+
+/** @return {THREE.Sprite} */
+function CastToSprite(a) {
+    return a;
 }
 
 class App {
@@ -62,6 +77,9 @@ class App {
         this.rockets = [];
 
         this.effects = [];
+
+        /** @type {TextureAnimator[]} */
+        this.animators = [];
     }
 
     InitialSpawn() {
@@ -69,38 +87,29 @@ class App {
         const radius = 5000;
 
         let partsArr = [];
-        for (var i in Parts)
+        for (var i in Parts) {
+            if (i == Parts.cabin)
+                continue;
             partsArr.push(i);
+        }
 
-        for (let a = 0; a < amount; a++) {
-            let x = Math.random() - 0.5;
-            let y = Math.random() - 0.5;
-
-            let partName = Parts.hub;
-            let random = MathUtils.randomInt(0, partsArr.length - 1);
-            partName = Parts[partsArr[random]];
-
-            let part = new Part(partName, this.groupLoot, x, y);
-            part.tObject.position.normalize();
-            part.tObject.position.multiplyScalar(Math.random() * radius);
-
-            part.isLoot = true;
-            part.tObject.part = part;
+        for (let i = 0; i < partsArr.length; i++) {
+            let x = i * 100;
+            for (let j = 0; j < 10; j++) {
+                let y = j * 100 + 500;
+                let partName = Parts[partsArr[i]];
+                let part = new Part(partName, this.groupLoot, x, y);
+                part.tObject["part"] = part;
+            }
         }
 
         this.scene.add(this.groupLoot);
 
+        let s1 = new Ship(this.scene, this.ships);
+        s1.tObject.position.x += 700;
+
         let player = new Ship(this.scene, this.ships);
         player.controller = new PlayerShip();
-        //player.tObject.position.z = 1;
-
-        new Ship(this.scene, this.ships);
-
-        //let test = new THREE.Sprite(AppTextures.materials.explosion.clone());
-        //let imageWidth = test.material.map.image.width;
-        //let imageHeight = test.material.map.image.height;
-        //test.scale.set(scaleGlobal * imageHeight, scaleGlobal * imageHeight, 1.0);
-        //this.scene.add(test);
     }
 
     /** @returns {Ship} */
@@ -157,16 +166,10 @@ class App {
         let time = Date.now() / 1000;
 
         for (let i = 0; i < this.groupLoot.children.length; i++) {
-            let sprite = this.groupLoot.children[i];
+            let sprite = CastToSprite(this.groupLoot.children[i]);
             let material = sprite.material;
-            let scale = Math.sin(time * 2) * 0.4 + scaleGlobal;
-            let imageWidth = 1;
-            let imageHeight = 1;
-            if (material.map && material.map.image && material.map.image.width) {
-                imageWidth = material.map.image.width;
-                imageHeight = material.map.image.height;
-            }
-            sprite.scale.set(scale * imageWidth, scale * imageHeight, 1.0);
+            let scale = (Math.sin(time * 2) * 0.2 + 1) * scaledTileGlobal;
+            sprite.scale.set(scale, scale, 1.0);
 
             if (sprite == this.undermouseLoot)
                 material.color.set('#f00');
@@ -184,14 +187,10 @@ class App {
     update() {
         let dt = this.clock.getDelta();
 
-        if (this.engineAnimator != null)
-            this.engineAnimator.update(1000 * dt);
-
-        if (this.rocketAnimator != null)
-            this.rocketAnimator.update(1000 * dt);
-
-        if (this.testAnimator != null)
-            this.testAnimator.update(1000 * dt);
+        for (let i = 0; i < this.animators.length; i++) {
+            let animator = this.animators[i];
+            animator.update(1000 * dt);
+        }
 
         this.undermousePreview = null;
         this.undermouseLoot = null;
@@ -324,9 +323,9 @@ class App {
         }
 
         if (this.undermouseLoot != null) {
-            const partName = this.undermouseLoot.part.partName;
+            const partName = this.undermouseLoot["part"].partName;
             this.groupLoot.remove(this.undermouseLoot);
-            this.undermouseLoot.part.Dispose();
+            this.undermouseLoot["part"].Dispose();
             this.undermouseLoot = null;
 
             if (player != null)
@@ -371,11 +370,15 @@ window.onload = function () {
     }
 
     AppTextures.callbacks.engineMove = function (t) {
-        app.engineAnimator = new TextureAnimator(t, 8, 1, 5, 100);
+        app.animators.push(new TextureAnimator(t, 8, 1, 5, 100));
     }
 
     AppTextures.callbacks.rocket = function (t) {
-        app.rocketAnimator = new TextureAnimator(t, 4, 1, 4, 100);
+        app.animators.push(new TextureAnimator(t, 4, 1, 4, 100));
+    }
+
+    AppTextures.callbacks.gyro_00 = function (t) {
+        app.animators.push(new TextureAnimator(t, 16, 1, 16, 100));
     }
 
     AppTextures.callbacks.explosion = function (t) {
@@ -394,6 +397,30 @@ window.onload = function () {
     PartsMeta[Parts.tilep_01].connections.push(new Connection(-1, 0));
     PartsMeta[Parts.tilep_01].connections.push(new Connection(0, -1));
 
+    PartsMeta[Parts.tiler_00].flipPartName = Parts.tiler_01;
+    PartsMeta[Parts.tiler_00].connections.push(new Connection(1, 0));
+    PartsMeta[Parts.tiler_00].connections.push(new Connection(0, -1));
+
+    PartsMeta[Parts.tiler_01].flipPartName = Parts.tiler_00;
+    PartsMeta[Parts.tiler_01].connections.push(new Connection(-1, 0));
+    PartsMeta[Parts.tiler_01].connections.push(new Connection(0, -1));
+
+    PartsMeta[Parts.tilep_02].flipPartName = Parts.tilep_03;
+    PartsMeta[Parts.tilep_02].connections.push(new Connection(-1, 0));
+    PartsMeta[Parts.tilep_02].connections.push(new Connection(0, 1));
+
+    PartsMeta[Parts.tilep_03].flipPartName = Parts.tilep_02;
+    PartsMeta[Parts.tilep_03].connections.push(new Connection(1, 0));
+    PartsMeta[Parts.tilep_03].connections.push(new Connection(0, 1));
+
+    PartsMeta[Parts.tiler_02].flipPartName = Parts.tiler_03;
+    PartsMeta[Parts.tiler_02].connections.push(new Connection(-1, 0));
+    PartsMeta[Parts.tiler_02].connections.push(new Connection(0, 1));
+
+    PartsMeta[Parts.tiler_03].flipPartName = Parts.tiler_02;
+    PartsMeta[Parts.tiler_03].connections.push(new Connection(1, 0));
+    PartsMeta[Parts.tiler_03].connections.push(new Connection(0, 1));
+
     PartsMeta[Parts.turretSideLeft].connections.push(new Connection(1, 0));
     PartsMeta[Parts.turretSideLeft].fireRate = 1;
     PartsMeta[Parts.turretSideLeft].flipPartName = Parts.turretSideRight;
@@ -401,6 +428,9 @@ window.onload = function () {
     PartsMeta[Parts.turretSideRight].connections.push(new Connection(-1, 0));
     PartsMeta[Parts.turretSideRight].fireRate = 1;
     PartsMeta[Parts.turretSideRight].flipPartName = Parts.turretSideLeft;
+
+    PartsMeta[Parts.turret_02].connections.push(new Connection(0, -1));
+    PartsMeta[Parts.turret_02].fireRate = 1;
 
     PartsMeta[Parts.bridge].connections.push(new Connection(0, -1));
     PartsMeta[Parts.bridge].connections.push(new Connection(0, 1));
@@ -412,28 +442,24 @@ window.onload = function () {
     PartsMeta[Parts.engine].connections.push(new Connection(0, 1));
     PartsMeta[Parts.engine].materialIdle = "engineIdle";
     PartsMeta[Parts.engine].materialMove = "engineIdle";
-    PartsMeta[Parts.engine].maxSpeedBoost = 200;
-    PartsMeta[Parts.engine].acceleration = 500;
+    PartsMeta[Parts.engine].acceleration = 700;
 
-    PartsMeta[Parts.hub].connections.push(new Connection(-1, 0));
-    PartsMeta[Parts.hub].connections.push(new Connection(1, 0));
-    PartsMeta[Parts.hub].connections.push(new Connection(0, -1));
-    PartsMeta[Parts.hub].connections.push(new Connection(0, 1));
+    PartsMeta[Parts.hub].AddAllConnections();
+    PartsMeta[Parts.hub2].AddAllConnections();
+    PartsMeta[Parts.laser].AddAllConnections();
+    PartsMeta[Parts.bridge_cross].AddAllConnections();
 
-    PartsMeta[Parts.bridge_cross].connections.push(new Connection(-1, 0));
-    PartsMeta[Parts.bridge_cross].connections.push(new Connection(1, 0));
-    PartsMeta[Parts.bridge_cross].connections.push(new Connection(0, -1));
-    PartsMeta[Parts.bridge_cross].connections.push(new Connection(0, 1));
+    PartsMeta[Parts.gyro_00].AddAllConnections();
+    PartsMeta[Parts.gyro_00].rotateSpeed = 7;
 
     app.InitialSpawn();
 
     window.addEventListener("resize", function () { app.onWindowResize() }, false);
     window.addEventListener("mousemove", function (e) { app.onDocumentMouseMove(e); }, false);
 
-    let stats = new Stats();
+    let stats = Stats();
     stats.domElement.style.position = 'absolute';
     stats.domElement.style.top = '0';
-    stats.domElement.style.zIndex = 100;
     document.body.appendChild(stats.domElement);
 
     // let ctx = domElement.getContext('2d');

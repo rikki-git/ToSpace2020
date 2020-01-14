@@ -2,7 +2,6 @@ class Part {
     constructor(partName, parent, x, y) {
         this.partMeta = PartsMeta[partName];
         this.partName = partName;
-        this.isLoot = false;
         this.isPreview = false;
         this.materialName = "";
 

@@ -5,7 +5,8 @@ class Ship {
         this.tObject.add(this.tPartsPreview);
         /** @type {Part[]} */
         this.parts = [];
-        this.CreatePart(Parts.cabin, 0, 1, false);
+        this.CreatePart(Parts.cabin, 0, 2, false);
+        this.CreatePart(Parts.gyro_00, 0, 1, false);
         this.CreatePart(Parts.hub, 0, 0, false);
         //this.CreatePart(Parts.turret, -1, 0, false);
         //this.CreatePart(Parts.turret, 1, 0, false);
@@ -21,8 +22,9 @@ class Ship {
 
     UpdateShipStats() {
         let mass = 0;
-        let maxSpeed = 100;
+        let maxSpeed = 1000;
         let acceleration = 25;
+        let rotateSpeed = 1;
 
         for (let i = 0; i < this.parts.length; i++) {
             /** @type {} */
@@ -32,14 +34,15 @@ class Ship {
                 continue;
 
             let meta = part.partMeta;
-            mass += 1;
-            maxSpeed += meta.maxSpeedBoost;
+            mass += meta.mass;
             acceleration += meta.acceleration;
+            rotateSpeed += meta.rotateSpeed;
         }
 
         this.mover.maxSpeed = maxSpeed;
         this.mover.acceleration = acceleration;
         this.mover.mass = mass;
+        this.mover.rotateSpeed = rotateSpeed;
     }
 
     /** @returns {Part} */

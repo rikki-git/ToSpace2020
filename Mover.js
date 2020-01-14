@@ -11,7 +11,12 @@ class ShipMover {
     }
 
     Move(target, dt) {
-        let newAngle = target.tObject.rotation.z + this.deltaAngle * dt * this.rotateSpeed;
+
+        let clampRoatate = this.rotateSpeed / this.mass;
+        if (clampRoatate > 4)
+            clampRoatate = 4;
+
+        let newAngle = target.tObject.rotation.z + this.deltaAngle * dt * clampRoatate;
 
         if (target.tObject.rotation.z !== newAngle) {
             target.Rotate(newAngle);

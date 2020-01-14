@@ -11,7 +11,7 @@ fs.readdir(directoryPath, function (err, files) {
     }
 
     let count = 0;
-    let save = "const AppTexturesGenerated = { ";
+    let save = "const AppTexturesGenerated = {\n";
     //listing all files using forEach
     files.forEach(function (file) {
         // Do whatever you want to do with the file
@@ -26,7 +26,7 @@ fs.readdir(directoryPath, function (err, files) {
 
             let token = file.replace('.png', '');
             count++;
-            save += token + ": \"" + string + "\", ";
+            save += token + ": \"" + string + "\",\n";
 
             if (count == files.length) {
                 save += "invalid: \"\" }";
