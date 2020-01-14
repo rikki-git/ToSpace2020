@@ -1,12 +1,17 @@
 class Part {
-    constructor(partName, parent, x, y) {
+    /** @param {boolean} isPreview */
+    /** @param {boolean} isLoot */
+    constructor(partName, parent, x, y, isPreview, isLoot) {
         this.partMeta = PartsMeta[partName];
         this.partName = partName;
-        this.isPreview = false;
+        this.isPreview = isPreview;
+        this.isLoot = isLoot;
         this.materialName = "";
+        /** @type {THREE.Sprite[]} */
+        this.effects = [];
 
         if (this.partMeta == null)
-            throw new Error("meta not found: " + partName);
+            throw new Error("partMeta not found: " + partName);
 
         let material = null;
         if (this.partMeta.materialIdle != null)
@@ -32,6 +37,20 @@ class Part {
         this.fireTime = this.partMeta.fireRate;
         this.isBroken = false;
         this.moving = false;
+
+        if (!this.isPreview && !this.isLoot) {
+            for (let i = 0; i < this.partMeta.effects.length; i++) {
+                let fx = this.partMeta.effects[i];
+                let fxSprite = new THREE.Sprite(AppTextures.materials[fx.textureName].clone());
+                parent.add(fxSprite);
+                fxSprite.position.set(x + fx.dx, y + fx.dy, 0);
+                fxSprite.scale.set(scaledTileGlobal, scaledTileGlobal, 1.0);
+                fxSprite["hideOnIdle"] = fx.hideOnIdle;
+                if (fx.hideOnIdle)
+                    fxSprite.visible = false;
+                this.effects.push(fxSprite);
+            }
+        }
     }
 
     Update(dt) {
@@ -57,6 +76,10 @@ class Part {
             return;
         this.tObject.material.color.set('#3F3F3F');
         this.isBroken = true;
+        for (let i = 0; i < this.effects.length; i++) {
+            let fx = this.effects[i];
+            fx.visible = false;
+        }
     }
 
     UpdateMaterial() {
@@ -68,17 +91,26 @@ class Part {
             return;
         }
 
+        for (let i = 0; i < this.effects.length; i++) {
+            let fx = this.effects[i];
+            let hideOnIdle = fx["hideOnIdle"];
+            if (hideOnIdle) {
+                fx.visible = !this.isBroken && this.moving;
+            }
+        }
+
         if (this.partMeta.materialIdle != null && this.partMeta.materialMove != null) {
+            let stateChanged = false;
             if (this.moving)
-                this.SetMaterial(this.partMeta.materialMove);
+                stateChanged = this.SetMaterial(this.partMeta.materialMove);
             else
-                this.SetMaterial(this.partMeta.materialIdle);
+                stateChanged = this.SetMaterial(this.partMeta.materialIdle);
         }
     }
 
     SetMaterial(newMaterialName) {
         if (this.materialName == newMaterialName)
-            return;
+            return false;
 
         let matRotation = this.tObject.material.rotation;
         let matColor = this.tObject.material.color;
@@ -94,9 +126,15 @@ class Part {
         this.tObject.material.color = matColor;
 
         this.materialName = newMaterialName;
+        return true;
     }
 
-    Dispose() {
+    Dispose(parent) {
         this.tObject.material.dispose();
+        for (let i = 0; i < this.effects.length; i++) {
+            let fx = this.effects[i];
+            parent.remove(fx);
+            fx.material.dispose();
+        }
     }
 }

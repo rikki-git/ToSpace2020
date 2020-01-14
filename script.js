@@ -98,7 +98,7 @@ class App {
             for (let j = 0; j < 10; j++) {
                 let y = j * 100 + 500;
                 let partName = Parts[partsArr[i]];
-                let part = new Part(partName, this.groupLoot, x, y);
+                let part = new Part(partName, this.groupLoot, x, y, false, true);
                 part.tObject["part"] = part;
             }
         }
@@ -325,7 +325,7 @@ class App {
         if (this.undermouseLoot != null) {
             const partName = this.undermouseLoot["part"].partName;
             this.groupLoot.remove(this.undermouseLoot);
-            this.undermouseLoot["part"].Dispose();
+            this.undermouseLoot["part"].Dispose(this.groupLoot);
             this.undermouseLoot = null;
 
             if (player != null)
@@ -381,8 +381,8 @@ window.onload = function () {
         app.animators.push(new TextureAnimator(t, 16, 1, 16, 100));
     }
 
-    AppTextures.callbacks.explosion = function (t) {
-        //app.testAnimator = new TextureAnimator(AppTextures.three.explosion, 8, 1, 7, 40);
+    AppTextures.callbacks.engineFire = function (t) {
+        app.animators.push(new TextureAnimator(t, 4, 1, 4, 100));
     }
 
     AppTextures.Load();
@@ -440,9 +440,9 @@ window.onload = function () {
     PartsMeta[Parts.bridgeT].connections.push(new Connection(1, 0));
 
     PartsMeta[Parts.engine].connections.push(new Connection(0, 1));
-    PartsMeta[Parts.engine].materialIdle = "engineIdle";
-    PartsMeta[Parts.engine].materialMove = "engineIdle";
     PartsMeta[Parts.engine].acceleration = 700;
+    PartsMeta[Parts.engine].effects.push(new PartEffect(0, -scaledTileGlobal, "engineFire"));
+    PartsMeta[Parts.engine].blockConnections.push(new Connection(0, -1));
 
     PartsMeta[Parts.hub].AddAllConnections();
     PartsMeta[Parts.hub2].AddAllConnections();

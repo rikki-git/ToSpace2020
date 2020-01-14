@@ -27,7 +27,6 @@ class Ship {
         let rotateSpeed = 1;
 
         for (let i = 0; i < this.parts.length; i++) {
-            /** @type {} */
             let part = this.parts[i];
 
             if (part.isBroken)
@@ -51,7 +50,7 @@ class Ship {
         if (isPreview)
             parent = this.tPartsPreview;
 
-        let part = new Part(partName, parent, tileX * scaledTileGlobal, tileY * scaledTileGlobal);
+        let part = new Part(partName, parent, tileX * scaledTileGlobal, tileY * scaledTileGlobal, isPreview, false);
         part.tileX = tileX;
         part.tileY = tileY;
         part.isPreview = isPreview;
@@ -162,7 +161,7 @@ class Ship {
         for (let i = 0; i < disposeParts.length; i++) {
             let part = disposeParts[i];
             this.tPartsPreview.remove(part.tObject);
-            part.Dispose();
+            part.Dispose(this.tPartsPreview);
         }
     }
 
@@ -174,25 +173,38 @@ class Ship {
 
         for (let i = 0; i < this.parts.length; i++) {
             let part = this.parts[i];
+            if (part.tileX < 0)
+                continue;
+
             for (let j = 0; j < part.partMeta.connections.length; j++) {
                 let c = part.partMeta.connections[j];
                 let x = part.tileX + c.dx;
                 let y = part.tileY + c.dy;
-
-                if (part.tileX < 0)
-                    continue;
-
                 let indx = x + "_" + y;
                 if (places[indx] == null)
-                    places[indx] = { x: x, y: y, connectionSources: {} };
+                    places[indx] = { x: x, y: y, connectionSources: {}, block: false };
+                else if (places[indx].block)
+                    continue;
 
                 let sourceIndx = (-c.dx) + "_" + (-c.dy);
                 places[indx].connectionSources[sourceIndx] = 1;
+            }
+
+            for (let j = 0; j < part.partMeta.blockConnections.length; j++) {
+                let c = part.partMeta.blockConnections[j];
+                let x = part.tileX + c.dx;
+                let y = part.tileY + c.dy;
+                let indx = x + "_" + y;
+                places[indx] = { x: x, y: y, connectionSources: {}, block: true };
             }
         }
 
         for (let i in places) {
             let place = places[i];
+
+            if (place.block)
+                continue;
+
             let oldPart = this.GetPart(place.x, place.y);
             if (oldPart == null) {
                 let newPartMeta = PartsMeta[partName];
