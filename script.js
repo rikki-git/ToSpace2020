@@ -46,10 +46,8 @@ class App {
 
         let width = window.innerWidth;
         let height = window.innerHeight;
-        this.camera = new THREE.OrthographicCamera(- width / 2, width / 2, height / 2, - height / 2, 0, 10);// new THREE.PerspectiveCamera(60, width / height, 1, 2100);
+        this.camera = new THREE.OrthographicCamera(- width / 2, width / 2, height / 2, - height / 2, 0, 10);
         this.camera.position.z = 10;
-        this.cameraOrtho = new THREE.OrthographicCamera(- width / 2, width / 2, height / 2, - height / 2, 0, 10);
-        this.cameraOrtho.position.z = 10;
 
         this.scene = new THREE.Scene();
         this.sceneOrtho = new THREE.Scene();
@@ -83,9 +81,6 @@ class App {
     }
 
     InitialSpawn() {
-        const amount = 100;
-        const radius = 5000;
-
         let partsArr = [];
         for (var i in Parts) {
             if (i == Parts.cabin)
@@ -98,17 +93,22 @@ class App {
             for (let j = 0; j < 10; j++) {
                 let y = j * 100 + 500;
                 let partName = Parts[partsArr[i]];
-                let part = new Part(partName, this.groupLoot, x, y, false, true);
+                let part = new Part(partName, this.groupLoot, x, y, 0, 0, false, true);
                 part.tObject["part"] = part;
             }
         }
 
         this.scene.add(this.groupLoot);
 
-        let s1 = new Ship(this.scene, this.ships);
+        let s1 = new Ship(this.scene, this.ships, "kakashki");
         s1.tObject.position.x += 700;
+        s1.controller = new BotShip();
 
-        let player = new Ship(this.scene, this.ships);
+        let s2 = new Ship(this.scene, this.ships, "pirate");
+        s2.tObject.position.x -= 700;
+        s2.controller = new BotShip();
+
+        let player = new Ship(this.scene, this.ships, "nyashki");
         player.controller = new PlayerShip();
     }
 
@@ -139,12 +139,6 @@ class App {
         this.camera.top = height / 2;
         this.camera.bottom = - height / 2;
         this.camera.updateProjectionMatrix();
-
-        this.cameraOrtho.left = - width / 2;
-        this.cameraOrtho.right = width / 2;
-        this.cameraOrtho.top = height / 2;
-        this.cameraOrtho.bottom = - height / 2;
-        this.cameraOrtho.updateProjectionMatrix();
 
         this.updateHUDSprites();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -180,8 +174,6 @@ class App {
         this.renderer.setClearColor(0x160428, 1);
         this.renderer.clear(true);
         this.renderer.render(this.scene, this.camera);
-        this.renderer.clearDepth();
-        this.renderer.render(this.sceneOrtho, this.cameraOrtho);
     }
 
     update() {
@@ -225,7 +217,7 @@ class App {
             let c = this.ships[i];
 
             c.Update(dt);
-            c.Control(this.keys);
+            c.Control(this.keys, this.ships, dt);
 
             if (c.controller != null && c.controller.isPlayer === true) {
                 this.camera.position.x = c.tObject.position.x;
@@ -239,7 +231,7 @@ class App {
 
             if (c.waitDestroy) {
                 new Explosion(this.scene, this.effects, c.tObject.position.x, c.tObject.position.y);
-                this.applyDamage(c.tObject.position.x, c.tObject.position.y, 14);
+                this.applyDamage(c.tObject.position.x, c.tObject.position.y, 24);
                 this.scene.remove(c.tObject);
                 this.rockets.splice(i, 1);
                 c.Dispose();

@@ -4,7 +4,7 @@ class PlayerShip {
     }
 
     /** @param {Ship} ship */
-    Control(ship, keys) {
+    Control(ship, keys, ships, dt) {
         let dSpeed = 0;
         let angle = 0;
 

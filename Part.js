@@ -1,7 +1,9 @@
 class Part {
+    /** @param {number} tileX */
+    /** @param {number} tileY */
     /** @param {boolean} isPreview */
     /** @param {boolean} isLoot */
-    constructor(partName, parent, x, y, isPreview, isLoot) {
+    constructor(partName, parent, x, y, tileX, tileY, isPreview, isLoot) {
         this.partMeta = PartsMeta[partName];
         this.partName = partName;
         this.isPreview = isPreview;
@@ -31,10 +33,11 @@ class Part {
         parent.add(sprite);
         this.tObject = sprite;
 
-        this.tileX = 0;
-        this.tileY = 0;
+        this.tileX = tileX;
+        this.tileY = tileY;
 
-        this.fireTime = this.partMeta.fireRate;
+        this.fireTime = this.partMeta.fireRate * Math.random();
+
         this.isBroken = false;
         this.moving = false;
 

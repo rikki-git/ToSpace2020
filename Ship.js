@@ -1,5 +1,6 @@
 class Ship {
-    constructor(scene, ships) {
+    /** @param {string} team */
+    constructor(scene, ships, team) {
         this.tObject = new THREE.Object3D();
         this.tPartsPreview = new THREE.Group();
         this.tObject.add(this.tPartsPreview);
@@ -8,23 +9,28 @@ class Ship {
         this.CreatePart(Parts.cabin, 0, 2, false);
         this.CreatePart(Parts.gyro_00, 0, 1, false);
         this.CreatePart(Parts.hub, 0, 0, false);
-        //this.CreatePart(Parts.turret, -1, 0, false);
-        //this.CreatePart(Parts.turret, 1, 0, false);
+        this.CreatePart(Parts.hub, -1, 0, false);
+        this.CreatePart(Parts.hub, 1, 0, false);
+        this.CreatePart(Parts.turretSideLeft, -2, 0, false);
+        this.CreatePart(Parts.turretSideRight, 2, 0, false);
         this.CreatePart(Parts.engine, 0, -1, false);
         this.mover = new ShipMover();
         this.controller = null;
         this.Rotate(0);
         scene.add(this.tObject);
         ships.push(this);
+        this.team = team;
+        this.isBroken = false;
 
         this.UpdateShipStats();
     }
 
     UpdateShipStats() {
         let mass = 0;
-        let maxSpeed = 1000;
-        let acceleration = 25;
-        let rotateSpeed = 1;
+        let maxSpeed = 350;
+        let acceleration = 50;
+        let rotateSpeed = 0.8;
+        let hasLivingParts = false;
 
         for (let i = 0; i < this.parts.length; i++) {
             let part = this.parts[i];
@@ -32,9 +38,14 @@ class Ship {
             if (part.isBroken)
                 continue;
 
+            hasLivingParts = true;
             let meta = part.partMeta;
             mass += meta.mass;
             acceleration += meta.acceleration;
+
+            if (meta.acceleration > 0)
+                maxSpeed = 550;
+
             rotateSpeed += meta.rotateSpeed;
         }
 
@@ -42,6 +53,12 @@ class Ship {
         this.mover.acceleration = acceleration;
         this.mover.mass = mass;
         this.mover.rotateSpeed = rotateSpeed;
+
+        if (!hasLivingParts) {
+            this.mover.dSpeed = 0;
+            this.mover.deltaAngle = 0;
+            this.isBroken = true;
+        }
     }
 
     /** @returns {Part} */
@@ -50,9 +67,7 @@ class Ship {
         if (isPreview)
             parent = this.tPartsPreview;
 
-        let part = new Part(partName, parent, tileX * scaledTileGlobal, tileY * scaledTileGlobal, isPreview, false);
-        part.tileX = tileX;
-        part.tileY = tileY;
+        let part = new Part(partName, parent, tileX * scaledTileGlobal, tileY * scaledTileGlobal, tileX, tileY, isPreview, false);
         part.isPreview = isPreview;
         this.parts.push(part);
         return part;
@@ -93,6 +108,9 @@ class Ship {
         if (this.mover != null)
             this.mover.Move(this, dt);
 
+        if (this.isBroken)
+            return;
+
         for (let i = 0; i < this.parts.length; i++) {
             let part = this.parts[i];
 
@@ -112,12 +130,13 @@ class Ship {
         }
     }
 
-    Control(keys) {
-        if (this.controller != null)
-            this.controller.Control(this, keys);
+    Control(keys, ships, dt) {
+        if (this.controller != null && !this.isBroken)
+            this.controller.Control(this, keys, ships, dt);
     }
 
     ApplyDamage(x, y, radius) {
+        let haveBrokenParts = false;
         for (let i = 0; i < this.parts.length; i++) {
             let part = this.parts[i];
             let pos = new THREE.Vector3();
@@ -126,8 +145,12 @@ class Ship {
             if (isHit && !part.isBroken) {
                 part.ApplyDamage();
                 if (part.isBroken)
-                    this.UpdateShipStats();
+                    haveBrokenParts = true;
             }
+        }
+
+        if (haveBrokenParts) {
+            this.UpdateShipStats();
         }
     }
 

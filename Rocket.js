@@ -5,7 +5,7 @@ class Rocket {
         this.tObject.scale.set(scaledTileGlobal, scaledTileGlobal, 1.0);
         this.mover = new ShipMover();
         this.mover.dSpeed = 1;
-        this.mover.maxSpeed = initialSpeed + 800;
+        this.mover.maxSpeed = initialSpeed + 1200;
         this.mover.acceleration = 10000;
         this.mover.speed = initialSpeed;
 
@@ -17,7 +17,7 @@ class Rocket {
         scene.add(this.tObject);
         storage.push(this);
 
-        this.timer = 0.9 + Math.random() / 2;
+        this.timer = 0.9 + Math.random() / 4;
         this.waitDestroy = false;
     }
 

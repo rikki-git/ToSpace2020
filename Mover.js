@@ -3,6 +3,7 @@ class ShipMover {
         this.speed = 0;
         this.acceleration = 300;
         this.rotateSpeed = 1.5;
+        this.maxRotateSpeed = 2;
         this.dSpeed = 0;
         this.deltaAngle = 0;
         this.maxSpeed = 1000;
@@ -13,8 +14,8 @@ class ShipMover {
     Move(target, dt) {
 
         let clampRoatate = this.rotateSpeed / this.mass;
-        if (clampRoatate > 4)
-            clampRoatate = 4;
+        if (clampRoatate > this.maxRotateSpeed)
+            clampRoatate = this.maxRotateSpeed;
 
         let newAngle = target.tObject.rotation.z + this.deltaAngle * dt * clampRoatate;
 
