@@ -77,12 +77,14 @@ class Part {
             return;
         if (this.isBroken)
             return;
-        this.tObject.material.color.set('#3F3F3F');
+
         this.isBroken = true;
         for (let i = 0; i < this.effects.length; i++) {
             let fx = this.effects[i];
             fx.visible = false;
         }
+
+        this.UpdateMaterial();
     }
 
     UpdateMaterial() {
@@ -90,7 +92,15 @@ class Part {
             return;
 
         if (this.isBroken) {
-            this.SetMaterial(this.defaultMaterialName);
+            let damagedMaterial = this.defaultMaterialName + "_d";
+            if (AppTextures.materials[damagedMaterial] != null) {
+                this.SetMaterial(damagedMaterial);
+                this.tObject.material.color.set('#969696');
+            }
+            else {
+                this.SetMaterial(this.defaultMaterialName);
+                this.tObject.material.color.set('#3F3F3F');
+            }
             return;
         }
 

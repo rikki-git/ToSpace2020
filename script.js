@@ -11,13 +11,14 @@ const PartsMeta = {}
 
 const Parts = {
     cabin: "cabin",
-    turretSideLeft: "turretSideLeft",
-    turretSideRight: "turretSideRight",
+    turret_03: "turret_03",
+    turret_04: "turret_04",
     bridge: "bridge",
     bridgeT: "bridgeT",
     engine: "engine",
     hub: "hub",
-    hub2: "hub2",
+    hcube: "hcube",
+    block: "block",
     bridge_cross: "bridge_cross",
     tilep_00: "tilep_00",
     tilep_01: "tilep_01",
@@ -413,13 +414,13 @@ window.onload = function () {
     PartsMeta[Parts.tiler_03].connections.push(new Connection(1, 0));
     PartsMeta[Parts.tiler_03].connections.push(new Connection(0, 1));
 
-    PartsMeta[Parts.turretSideLeft].connections.push(new Connection(1, 0));
-    PartsMeta[Parts.turretSideLeft].fireRate = 1;
-    PartsMeta[Parts.turretSideLeft].flipPartName = Parts.turretSideRight;
+    PartsMeta[Parts.turret_03].connections.push(new Connection(-1, 0));
+    PartsMeta[Parts.turret_03].fireRate = 1;
+    PartsMeta[Parts.turret_03].flipPartName = Parts.turret_04;
 
-    PartsMeta[Parts.turretSideRight].connections.push(new Connection(-1, 0));
-    PartsMeta[Parts.turretSideRight].fireRate = 1;
-    PartsMeta[Parts.turretSideRight].flipPartName = Parts.turretSideLeft;
+    PartsMeta[Parts.turret_04].connections.push(new Connection(1, 0));
+    PartsMeta[Parts.turret_04].fireRate = 1;
+    PartsMeta[Parts.turret_04].flipPartName = Parts.turret_03;
 
     PartsMeta[Parts.turret_02].connections.push(new Connection(0, -1));
     PartsMeta[Parts.turret_02].fireRate = 1;
@@ -437,7 +438,8 @@ window.onload = function () {
     PartsMeta[Parts.engine].blockConnections.push(new Connection(0, -1));
 
     PartsMeta[Parts.hub].AddAllConnections();
-    PartsMeta[Parts.hub2].AddAllConnections();
+    PartsMeta[Parts.hcube].AddAllConnections();
+    PartsMeta[Parts.block].AddAllConnections();
     PartsMeta[Parts.laser].AddAllConnections();
     PartsMeta[Parts.bridge_cross].AddAllConnections();
 

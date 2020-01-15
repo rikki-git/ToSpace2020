@@ -8,11 +8,11 @@ class Ship {
         this.parts = [];
         this.CreatePart(Parts.cabin, 0, 2, false);
         this.CreatePart(Parts.gyro_00, 0, 1, false);
-        this.CreatePart(Parts.hub, 0, 0, false);
-        this.CreatePart(Parts.hub, -1, 0, false);
-        this.CreatePart(Parts.hub, 1, 0, false);
-        this.CreatePart(Parts.turretSideLeft, -2, 0, false);
-        this.CreatePart(Parts.turretSideRight, 2, 0, false);
+        this.CreatePart(Parts.hcube, 0, 0, false);
+        this.CreatePart(Parts.block, -1, 0, false);
+        this.CreatePart(Parts.block, 1, 0, false);
+        this.CreatePart(Parts.turret_04, -2, 0, false);
+        this.CreatePart(Parts.turret_03, 2, 0, false);
         this.CreatePart(Parts.engine, 0, -1, false);
         this.mover = new ShipMover();
         this.controller = null;
