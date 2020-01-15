@@ -9,6 +9,8 @@ function TextureAnimator(texture, tilesHoriz, tilesVert, numTiles, tileDispDurat
     //  usually equals tilesHoriz * tilesVert, but not necessarily,
     //  if there at blank tiles at the bottom of the spritesheet.
     this.numberOfTiles = numTiles;
+    texture.offset.x = 0;
+    texture.offset.y = 0;
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
     texture.repeat.set(1 / this.tilesHorizontal, 1 / this.tilesVertical);
     // how long should each image be displayed?

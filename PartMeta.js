@@ -32,6 +32,7 @@ class PartMeta {
         this.hp = 100;
         /** @type {PartEffect[]} */
         this.effects = [];
+        this.canFireNearBlocksOnBreak = false;
     }
 
     AddAllConnections() {

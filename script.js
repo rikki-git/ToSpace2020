@@ -116,8 +116,24 @@ class App {
         s2.Rotate(2);
 
         let player = new Ship(this.scene, this.ships, "nyashki");
+        player.tObject.position.x -= 1000;
         player.tObject.position.y += 1000;
+        player.Rotate(4);
         player.controller = new PlayerShip();
+
+        for (let i = 2; i < 2 + 3; i++) {
+            let s = new Ship(this.scene, this.ships, "1");
+            s.tObject.position.x -= 700 * i;
+            s.controller = new BotShip();
+            s.Rotate(2);
+        }
+
+        for (let i = 2; i < 2 + 3; i++) {
+            let s = new Ship(this.scene, this.ships, "2");
+            s.tObject.position.x += 700 * i;
+            s.controller = new BotShip();
+            s.Rotate(2);
+        }
     }
 
     /** @returns {Ship} */
@@ -186,9 +202,6 @@ class App {
 
     update() {
         let dt = this.clock.getDelta();
-
-        if (dt > 1000)
-            return;
 
         let rareUpdate = false;
 
@@ -424,6 +437,10 @@ window.onload = function () {
         app.animators.push(new TextureAnimator(t, 4, 1, 4, 100));
     }
 
+    AppTextures.callbacks.fire = function (t) {
+        app.animators.push(new TextureAnimator(t, 2, 2, 4, 100));
+    }
+
     AppTextures.Load();
 
     PartsMeta[Parts.cabin].connections.push(new Connection(0, -1));
@@ -482,6 +499,7 @@ window.onload = function () {
     PartsMeta[Parts.engine].acceleration = 700;
     PartsMeta[Parts.engine].effects.push(new PartEffect(0, -scaledTileGlobal, "engineFire"));
     PartsMeta[Parts.engine].blockConnections.push(new Connection(0, -1));
+    PartsMeta[Parts.engine].canFireNearBlocksOnBreak = true;
 
     PartsMeta[Parts.hub].AddAllConnections();
     PartsMeta[Parts.hcube].AddAllConnections();
@@ -491,12 +509,14 @@ window.onload = function () {
 
     PartsMeta[Parts.gyro_00].AddAllConnections();
     PartsMeta[Parts.gyro_00].rotateSpeed = 7;
+    PartsMeta[Parts.gyro_00].canFireNearBlocksOnBreak = true;
 
     PartsMeta[Parts.rocketLauncher].AddAllConnections();
     PartsMeta[Parts.rocketLauncher].fireRate = 5;
     PartsMeta[Parts.rocketLauncher].fireMiniCount = 3;
     PartsMeta[Parts.rocketLauncher].fireMiniDelay = 0.2;
     PartsMeta[Parts.rocketLauncher].fireRocketType = RocketTypes.rocket;
+    PartsMeta[Parts.rocketLauncher].canFireNearBlocksOnBreak = true;
 
     app.InitialSpawn();
 

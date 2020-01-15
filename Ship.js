@@ -7,14 +7,26 @@ class Ship {
         this.tObject.add(this.tPartsPreview);
         /** @type {Part[]} */
         this.parts = [];
+        this.partsHash = {};
+
         this.CreatePart(Parts.cabin, 0, 2, false);
-        this.CreatePart(Parts.gyro_00, 0, 1, false);
+        this.CreatePart(Parts.hub, 0, 1, false);
         this.CreatePart(Parts.hcube, 0, 0, false);
         this.CreatePart(Parts.block, -1, 0, false);
         this.CreatePart(Parts.block, 1, 0, false);
         this.CreatePart(Parts.turret_04, -2, 0, false);
         this.CreatePart(Parts.turret_03, 2, 0, false);
-        this.CreatePart(Parts.engine, 0, -1, false);
+        this.CreatePart(Parts.gyro_00, -1, -1, false);
+        this.CreatePart(Parts.gyro_00, 1, -1, false);
+        this.CreatePart(Parts.tilep_00, -2, -1, false);
+        this.CreatePart(Parts.tilep_01, 2, -1, false);
+        this.CreatePart(Parts.tilep_00, -1, 1, false);
+        this.CreatePart(Parts.tilep_01, 1, 1, false);
+        this.CreatePart(Parts.rocketLauncher, 0, -1, false);
+        this.CreatePart(Parts.engine, 0, -2, false);
+        this.CreatePart(Parts.engine, -1, -2, false);
+        this.CreatePart(Parts.engine, 1, -2, false);
+
         this.mover = new ShipMover();
         this.controller = null;
         this.Rotate(0);
@@ -22,6 +34,9 @@ class Ship {
         ships.push(this);
         this.isBroken = false;
         this.UpdateShipStats();
+
+        //this.mover.speed = 100;
+        //this.ApplyDamage(0, 0, 1000, 1000);
     }
 
     UpdateShipStats() {
@@ -58,6 +73,22 @@ class Ship {
             this.mover.dSpeed = 0;
             this.mover.deltaAngle = 0;
             this.isBroken = true;
+            this.DisposePlaceables();
+            let explosions = 3;
+
+            for (let i = 0; i < this.parts.length; i++) {
+                let part = this.parts[i];
+                part.tObject.position.x += (Math.random() - 0.5) * 20;
+                part.tObject.position.y += (Math.random() - 0.5) * 20;
+                part.tObject.material.rotation += (Math.random() - 0.5) * 10;
+
+                if (Math.random() < 0.3 && explosions > 0) {
+                    explosions--;
+                    let pos = new THREE.Vector3();
+                    this.tObject.getWorldPosition(pos);
+                    new Explosion(appGlobal.scene, appGlobal.effects, pos.x, pos.y, Explosions.explosion64);
+                }
+            }
         }
     }
 
@@ -70,6 +101,7 @@ class Ship {
         let part = new Part(partName, parent, tileX * scaledTileGlobal, tileY * scaledTileGlobal, tileX, tileY, isPreview, false, this.team);
         part.isPreview = isPreview;
         this.parts.push(part);
+        this.partsHash[tileX + "_" + tileY] = part;
         return part;
     }
 
@@ -105,17 +137,36 @@ class Ship {
     }
 
     Update(dt, rareUpdate) {
-        if (this.mover != null)
-            this.mover.Move(this, dt);
+        this.mover.Move(this, dt);
 
-        if (this.isBroken)
+        if (this.isBroken) {
+            for (let i = 0; i < this.parts.length; i++) {
+                let part = this.parts[i];
+                let mx = -this.mover.speed * 0.2 * Math.sin(part.tObject.material.rotation) * dt;
+                let my = this.mover.speed * 0.2 * Math.cos(part.tObject.material.rotation) * dt;
+                part.tObject.position.x += mx;
+                part.tObject.position.y += my;
+            }
             return;
+        }
 
         for (let i = 0; i < this.parts.length; i++) {
             let part = this.parts[i];
 
             if (part.isBroken)
                 continue;
+
+            let pos = new THREE.Vector3();
+            part.tObject.getWorldPosition(pos);
+
+            // TODO: do not search already known part
+            if (part.isBurning) {
+                part.burnDamageTime -= dt;
+                if (part.burnDamageTime < 0) {
+                    part.burnDamageTime = part.burnDamageCooldown;
+                    this.ApplyDamage(pos.x, pos.y, 10, 999);
+                }
+            }
 
             let updateFireRate = true;
 
@@ -138,8 +189,6 @@ class Ship {
                     if (part.fireMiniTime <= 0) {
                         part.fireMiniCount--;
                         part.fireMiniTime = part.partMeta.fireMiniDelay;
-                        let pos = new THREE.Vector3();
-                        part.tObject.getWorldPosition(pos);
                         new Rocket(appGlobal.scene, appGlobal.rockets, pos.x, pos.y, this.tObject.rotation.z, this.mover.speed, this.team, part.partMeta.fireRocketType);
                     }
                 }
@@ -154,6 +203,8 @@ class Ship {
 
     ApplyDamage(x, y, radius, damage) {
         let haveBrokenParts = false;
+        let fireTargets = {};
+
         for (let i = 0; i < this.parts.length; i++) {
             let part = this.parts[i];
             let pos = new THREE.Vector3();
@@ -161,13 +212,33 @@ class Ship {
             let isHit = MathUtils.isInCircle(pos.x, pos.y, x, y, radius);
             if (isHit && !part.isBroken) {
                 part.ApplyDamage(damage);
-                if (part.isBroken)
+                if (part.isBroken) {
                     haveBrokenParts = true;
+                    if (part.partMeta.canFireNearBlocksOnBreak) {
+                        for (var j = 0; j < part.partMeta.connections.length; j++) {
+                            let connection = part.partMeta.connections[j];
+                            let x = part.tileX + connection.dx;
+                            let y = part.tileY + connection.dy;
+                            let indx = x + "_" + y;
+                            fireTargets[indx] = 1;
+                        }
+                    }
+                }
             }
         }
 
         if (haveBrokenParts) {
             this.UpdateShipStats();
+
+            for (let t in fireTargets) {
+                if (this.partsHash.hasOwnProperty(t)) {
+                    /** @type {Part} */
+                    let p = this.partsHash[t];
+                    if (!p.isBroken && !p.isPreview) {
+                        p.Burn();
+                    }
+                }
+            }
         }
     }
 
@@ -208,6 +279,9 @@ class Ship {
     ShowPlaceable(partName) {
 
         this.DisposePlaceables();
+
+        if (this.isBroken)
+            return;
 
         let places = {};
 

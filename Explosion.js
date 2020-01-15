@@ -1,6 +1,7 @@
 const Explosions = {
     explosion: "explosion",
-    laserHit: "laserHit"
+    laserHit: "laserHit",
+    explosion64: "explosion64",
 }
 
 class ExplosionMeta {
@@ -14,6 +15,7 @@ class ExplosionMeta {
 const ExplosionsMetas = {
     [Explosions.explosion]: { framesAnimate: 7, framesTotal: 8 },
     [Explosions.laserHit]: { framesAnimate: 4, framesTotal: 4 },
+    [Explosions.explosion64]: { framesAnimate: 9, framesTotal: 16 },
 }
 
 class Explosion {

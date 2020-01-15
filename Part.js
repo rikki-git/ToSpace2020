@@ -7,6 +7,7 @@ class Part {
     * @param {string} team
     */
     constructor(partName, parent, x, y, tileX, tileY, isPreview, isLoot, team) {
+        this.parent = parent;
         this.team = team;
         this.partMeta = PartsMeta[partName];
         this.partName = partName;
@@ -48,6 +49,10 @@ class Part {
 
         this.isBroken = false;
         this.moving = false;
+        this.isBurning = false;
+
+        this.burnDamageCooldown = 3;
+        this.burnDamageTime = this.burnDamageCooldown;
 
         if (!this.isPreview && !this.isLoot) {
             for (let i = 0; i < this.partMeta.effects.length; i++) {
@@ -62,6 +67,18 @@ class Part {
                 this.effects.push(fxSprite);
             }
         }
+    }
+
+    Burn() {
+        if (this.isBurning)
+            return;
+        this.isBurning = true;
+
+        let fxSprite = new THREE.Sprite(AppTextures.materials.fire.clone());
+        this.parent.add(fxSprite);
+        fxSprite.position.set(this.tObject.position.x, this.tObject.position.y, 0);
+        fxSprite.scale.set(scaledTileGlobal, scaledTileGlobal, 1.0);
+        this.effects.push(fxSprite);
     }
 
     Update(dt) {
@@ -96,6 +113,9 @@ class Part {
 
         this.hp -= damage;
         if (this.hp <= 0) {
+            let pos = new THREE.Vector3();
+            this.tObject.getWorldPosition(pos);
+            new Explosion(appGlobal.scene, appGlobal.effects, pos.x, pos.y, Explosions.explosion64);
             this.hp = 0;
             this.isBroken = true;
             for (let i = 0; i < this.effects.length; i++) {

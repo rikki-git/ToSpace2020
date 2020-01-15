@@ -2,7 +2,9 @@ class ShipMover {
     constructor() {
         this.speed = 0;
         this.acceleration = 300;
+        this.minAcceleration = 35;
         this.rotateSpeed = 1.5;
+        this.minRotateSpeed = 0.5;
         this.maxRotateSpeed = 2;
         this.dSpeed = 0;
         this.deltaAngle = 0;
@@ -13,18 +15,22 @@ class ShipMover {
 
     Move(target, dt) {
 
-        let clampRoatate = this.rotateSpeed / this.mass;
-        if (clampRoatate > this.maxRotateSpeed)
-            clampRoatate = this.maxRotateSpeed;
-
-        let newAngle = target.tObject.rotation.z + this.deltaAngle * dt * clampRoatate;
+        let clampRotate = this.rotateSpeed / this.mass;
+        if (clampRotate > this.maxRotateSpeed)
+            clampRotate = this.maxRotateSpeed;
+        if (clampRotate < this.minRotateSpeed)
+            clampRotate = this.minRotateSpeed;
+        let newAngle = target.tObject.rotation.z + this.deltaAngle * dt * clampRotate;
 
         if (target.tObject.rotation.z !== newAngle) {
             target.Rotate(newAngle);
         }
 
         if (this.dSpeed !== 0) {
-            this.speed += this.dSpeed * dt * this.acceleration / this.mass;
+            let acc = this.acceleration / this.mass;
+            if (acc < this.minAcceleration)
+                acc = this.minAcceleration;
+            this.speed += this.dSpeed * dt * acc;
         }
         else {
             this.speed += -1 * dt * this.slowdown / this.mass;
