@@ -21,11 +21,15 @@ class PartMeta {
         /** @type {Connection[]} */
         this.blockConnections = [];
         this.fireRate = 0;
+        this.fireRocketType = RocketTypes.laserBullet;
+        this.fireMiniCount = 1;
+        this.fireMiniDelay = 0;
         this.flipPartName = null;
         this.maxSpeedBoost = 0;
         this.acceleration = 0;
         this.rotateSpeed = 0;
         this.mass = 0.5;
+        this.hp = 100;
         /** @type {PartEffect[]} */
         this.effects = [];
     }

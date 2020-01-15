@@ -8,6 +8,7 @@ class BotShip {
         this.leaveDir = 1;
         this.leaveAngleTime = 1;
         this.attackWait = Math.random() * 5 + 3;
+        this.requreFire = false;
     }
 
     /**
@@ -37,7 +38,13 @@ class BotShip {
     * @param {Ship} me
     * @param {Ship[]} ships
     */
-    Control(me, keys, ships, dt) {
+    Control(me, keys, ships, dt, isRareUpdate) {
+        if (!isRareUpdate)
+            return;
+
+        this.requreFire = false;
+        dt = appGlobal.rareUpdateInterval;
+
         this.ValidateTarget(me, ships);
         if (this.target == null)
             return;
@@ -97,11 +104,14 @@ class BotShip {
             else
                 me.mover.deltaAngle = 0;
 
-            if (dist < 1000)
+            if (dist < 1000) {
                 this.attackTime += dt;
+                this.requreFire = true;
+            }
             else if (dist < 1500) {
-                this.attackTime += dt * 0.2;
+                this.attackTime += dt * 0.5;
                 me.mover.dSpeed = 0;
+                this.requreFire = true;
             }
             else
                 me.mover.dSpeed = 1;

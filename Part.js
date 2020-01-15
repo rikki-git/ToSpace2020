@@ -1,14 +1,19 @@
 class Part {
-    /** @param {number} tileX */
-    /** @param {number} tileY */
-    /** @param {boolean} isPreview */
-    /** @param {boolean} isLoot */
-    constructor(partName, parent, x, y, tileX, tileY, isPreview, isLoot) {
+    /** 
+    * @param {number} tileX
+    * @param {number} tileY 
+    * @param {boolean} isPreview 
+    * @param {boolean} isLoot
+    * @param {string} team
+    */
+    constructor(partName, parent, x, y, tileX, tileY, isPreview, isLoot, team) {
+        this.team = team;
         this.partMeta = PartsMeta[partName];
         this.partName = partName;
         this.isPreview = isPreview;
         this.isLoot = isLoot;
         this.materialName = "";
+        this.hp = this.partMeta.hp;
         /** @type {THREE.Sprite[]} */
         this.effects = [];
 
@@ -32,11 +37,14 @@ class Part {
         sprite.scale.set(scaledTileGlobal, scaledTileGlobal, 1.0);
         parent.add(sprite);
         this.tObject = sprite;
+        this.tObject["part"] = this;
 
         this.tileX = tileX;
         this.tileY = tileY;
 
         this.fireTime = this.partMeta.fireRate * Math.random();
+        this.fireMiniTime = 0;
+        this.fireMiniCount = 0;
 
         this.isBroken = false;
         this.moving = false;
@@ -63,28 +71,39 @@ class Part {
         if (this.isBroken)
             return;
 
-        if (this.partMeta.fireRate > 0) {
-            this.fireTime -= dt;
+        if (this.fireMiniCount > 0) {
+            this.fireMiniTime -= dt;
+            if (this.fireMiniTime <= 0) {
+                this.fireMiniTime = 0;
+            }
+        }
+        else {
+            if (this.partMeta.fireRate > 0) {
+                this.fireTime -= dt;
 
-            if (this.fireTime <= 0) {
-                this.fireTime = 0;
+                if (this.fireTime <= 0) {
+                    this.fireTime = 0;
+                }
             }
         }
     }
 
-    ApplyDamage() {
+    ApplyDamage(damage) {
         if (this.isPreview)
             return;
         if (this.isBroken)
             return;
 
-        this.isBroken = true;
-        for (let i = 0; i < this.effects.length; i++) {
-            let fx = this.effects[i];
-            fx.visible = false;
+        this.hp -= damage;
+        if (this.hp <= 0) {
+            this.hp = 0;
+            this.isBroken = true;
+            for (let i = 0; i < this.effects.length; i++) {
+                let fx = this.effects[i];
+                fx.visible = false;
+            }
+            this.UpdateMaterial();
         }
-
-        this.UpdateMaterial();
     }
 
     UpdateMaterial() {
@@ -95,7 +114,7 @@ class Part {
             let damagedMaterial = this.defaultMaterialName + "_d";
             if (AppTextures.materials[damagedMaterial] != null) {
                 this.SetMaterial(damagedMaterial);
-                this.tObject.material.color.set('#969696');
+                this.tObject.material.color.set('#9E9E9E');
             }
             else {
                 this.SetMaterial(this.defaultMaterialName);

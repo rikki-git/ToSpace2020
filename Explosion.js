@@ -1,13 +1,33 @@
+const Explosions = {
+    explosion: "explosion",
+    laserHit: "laserHit"
+}
+
+class ExplosionMeta {
+    constructor() {
+        this.framesAnimate = 0;
+        this.framesTotal = 0;
+    }
+}
+
+/** @type {Object.<string, ExplosionMeta>} */
+const ExplosionsMetas = {
+    [Explosions.explosion]: { framesAnimate: 7, framesTotal: 8 },
+    [Explosions.laserHit]: { framesAnimate: 4, framesTotal: 4 },
+}
+
 class Explosion {
-    constructor(scene, storage, x, y) {
-        this.timer = 40 * 7 / 1000;
-        this.textureCopy = AppTextures.three.explosion.clone();
+    constructor(scene, storage, x, y, explosionType) {
+        let meta = ExplosionsMetas[explosionType];
+        let timePerFrame = 40;
+        this.timer = timePerFrame * meta.framesAnimate / 1000;
+        this.textureCopy = AppTextures.three[explosionType].clone();
         this.textureCopy.needsUpdate = true;
         this.tObject = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.textureCopy, color: 0xffffff, fog: false }));
         let imageHeight = this.tObject.material.map.image.height;
         this.tObject.position.set(x, y, 0);
         this.tObject.scale.set(scaleGlobal * imageHeight, scaleGlobal * imageHeight, 1.0);
-        this.animator = new TextureAnimator(this.textureCopy, 8, 1, 7, 40);
+        this.animator = new TextureAnimator(this.textureCopy, meta.framesTotal, 1, meta.framesAnimate, timePerFrame);
         storage.push(this);
         scene.add(this.tObject);
     }

@@ -5,6 +5,7 @@ let appGlobal = null;
 const scaleGlobal = 4;
 const tileGlobal = 16;
 const scaledTileGlobal = scaleGlobal * tileGlobal;
+const NoTeam = "";
 
 /** @type {Object.<string, PartMeta>} */
 const PartsMeta = {}
@@ -31,6 +32,7 @@ const Parts = {
     gyro_00: "gyro_00",
     laser: "laser",
     turret_02: "turret_02",
+    rocketLauncher: "rocketLauncher",
 }
 
 /** @return {THREE.Sprite} */
@@ -44,6 +46,9 @@ class App {
             let meta = new PartMeta();
             PartsMeta[i] = meta;
         }
+
+        this.rareUpdateCounter = 0;
+        this.rareUpdateInterval = 0.06;
 
         let width = window.innerWidth;
         let height = window.innerHeight;
@@ -94,8 +99,7 @@ class App {
             for (let j = 0; j < 10; j++) {
                 let y = j * 100 + 500;
                 let partName = Parts[partsArr[i]];
-                let part = new Part(partName, this.groupLoot, x, y, 0, 0, false, true);
-                part.tObject["part"] = part;
+                new Part(partName, this.groupLoot, x, y, 0, 0, false, true, NoTeam);
             }
         }
 
@@ -104,12 +108,15 @@ class App {
         let s1 = new Ship(this.scene, this.ships, "kakashki");
         s1.tObject.position.x += 700;
         s1.controller = new BotShip();
+        s1.Rotate(4);
 
         let s2 = new Ship(this.scene, this.ships, "pirate");
         s2.tObject.position.x -= 700;
         s2.controller = new BotShip();
+        s2.Rotate(2);
 
         let player = new Ship(this.scene, this.ships, "nyashki");
+        player.tObject.position.y += 1000;
         player.controller = new PlayerShip();
     }
 
@@ -180,6 +187,17 @@ class App {
     update() {
         let dt = this.clock.getDelta();
 
+        if (dt > 1000)
+            return;
+
+        let rareUpdate = false;
+
+        this.rareUpdateCounter += dt;
+        if (this.rareUpdateCounter > this.rareUpdateInterval) {
+            this.rareUpdateCounter -= this.rareUpdateInterval;
+            rareUpdate = true;
+        }
+
         for (let i = 0; i < this.animators.length; i++) {
             let animator = this.animators[i];
             animator.update(1000 * dt);
@@ -217,8 +235,8 @@ class App {
         for (let i = 0; i < this.ships.length; i++) {
             let c = this.ships[i];
 
-            c.Update(dt);
-            c.Control(this.keys, this.ships, dt);
+            c.Update(dt, rareUpdate);
+            c.Control(this.keys, this.ships, dt, rareUpdate);
 
             if (c.controller != null && c.controller.isPlayer === true) {
                 this.camera.position.x = c.tObject.position.x;
@@ -230,9 +248,23 @@ class App {
             let c = this.rockets[i];
             c.Update(dt);
 
+            if (rareUpdate) {
+                this.raycaster.set(c.tObject.position, new THREE.Vector3(0, 0, -1));
+                let intersects = this.raycaster.intersectObject(this.scene, true);
+                if (intersects.length > 0) {
+                    let part = this.getPartFromTObject(intersects[0].object);
+                    if (part != null && !part.isBroken && !part.isPreview && c.team != part.team && !part.isLoot) {
+                        c.waitDestroy = true;
+                    }
+                }
+            }
+
             if (c.waitDestroy) {
-                new Explosion(this.scene, this.effects, c.tObject.position.x, c.tObject.position.y);
-                this.applyDamage(c.tObject.position.x, c.tObject.position.y, 24);
+                if (c.rocketType == RocketTypes.rocket)
+                    new Explosion(this.scene, this.effects, c.tObject.position.x, c.tObject.position.y, Explosions.explosion);
+                else
+                    new Explosion(this.scene, this.effects, c.tObject.position.x, c.tObject.position.y, Explosions.laserHit);
+                this.applyDamage(c.tObject.position.x, c.tObject.position.y, c.damageRadius, c.team, c.damage);
                 this.scene.remove(c.tObject);
                 this.rockets.splice(i, 1);
                 c.Dispose();
@@ -251,10 +283,12 @@ class App {
         }
     }
 
-    applyDamage(x, y, radius) {
+    applyDamage(x, y, radius, team, damage) {
         for (let i = 0; i < this.ships.length; i++) {
             let c = this.ships[i];
-            c.ApplyDamage(x, y, radius * scaleGlobal);
+            if (c.team == team)
+                continue;
+            c.ApplyDamage(x, y, radius * scaleGlobal, damage);
         }
     }
 
@@ -316,14 +350,26 @@ class App {
         }
 
         if (this.undermouseLoot != null) {
-            const partName = this.undermouseLoot["part"].partName;
+            let part = this.getPartFromTObject(this.undermouseLoot);
+            const partName = part.partName;
             this.groupLoot.remove(this.undermouseLoot);
-            this.undermouseLoot["part"].Dispose(this.groupLoot);
+            part.Dispose(this.groupLoot);
             this.undermouseLoot = null;
 
             if (player != null)
                 player.ShowPlaceable(partName);
         }
+    }
+
+    /**
+     * 
+     * @param {THREE.Object3D} tObject 
+     * @returns {Part}
+     */
+    getPartFromTObject(tObject) {
+        if (tObject == null)
+            return null;
+        return tObject["part"];
     }
 
     handleWheel(e) {
@@ -415,15 +461,15 @@ window.onload = function () {
     PartsMeta[Parts.tiler_03].connections.push(new Connection(0, 1));
 
     PartsMeta[Parts.turret_03].connections.push(new Connection(-1, 0));
-    PartsMeta[Parts.turret_03].fireRate = 1;
+    PartsMeta[Parts.turret_03].fireRate = 0.3;
     PartsMeta[Parts.turret_03].flipPartName = Parts.turret_04;
 
     PartsMeta[Parts.turret_04].connections.push(new Connection(1, 0));
-    PartsMeta[Parts.turret_04].fireRate = 1;
+    PartsMeta[Parts.turret_04].fireRate = 0.3;
     PartsMeta[Parts.turret_04].flipPartName = Parts.turret_03;
 
     PartsMeta[Parts.turret_02].connections.push(new Connection(0, -1));
-    PartsMeta[Parts.turret_02].fireRate = 1;
+    PartsMeta[Parts.turret_02].fireRate = 0.3;
 
     PartsMeta[Parts.bridge].connections.push(new Connection(0, -1));
     PartsMeta[Parts.bridge].connections.push(new Connection(0, 1));
@@ -445,6 +491,12 @@ window.onload = function () {
 
     PartsMeta[Parts.gyro_00].AddAllConnections();
     PartsMeta[Parts.gyro_00].rotateSpeed = 7;
+
+    PartsMeta[Parts.rocketLauncher].AddAllConnections();
+    PartsMeta[Parts.rocketLauncher].fireRate = 5;
+    PartsMeta[Parts.rocketLauncher].fireMiniCount = 3;
+    PartsMeta[Parts.rocketLauncher].fireMiniDelay = 0.2;
+    PartsMeta[Parts.rocketLauncher].fireRocketType = RocketTypes.rocket;
 
     app.InitialSpawn();
 

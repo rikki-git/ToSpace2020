@@ -1,6 +1,7 @@
 class Ship {
     /** @param {string} team */
     constructor(scene, ships, team) {
+        this.team = team;
         this.tObject = new THREE.Object3D();
         this.tPartsPreview = new THREE.Group();
         this.tObject.add(this.tPartsPreview);
@@ -19,9 +20,7 @@ class Ship {
         this.Rotate(0);
         scene.add(this.tObject);
         ships.push(this);
-        this.team = team;
         this.isBroken = false;
-
         this.UpdateShipStats();
     }
 
@@ -34,13 +33,14 @@ class Ship {
 
         for (let i = 0; i < this.parts.length; i++) {
             let part = this.parts[i];
+            let meta = part.partMeta;
+            mass += meta.mass;
 
             if (part.isBroken)
                 continue;
 
             hasLivingParts = true;
-            let meta = part.partMeta;
-            mass += meta.mass;
+
             acceleration += meta.acceleration;
 
             if (meta.acceleration > 0)
@@ -67,7 +67,7 @@ class Ship {
         if (isPreview)
             parent = this.tPartsPreview;
 
-        let part = new Part(partName, parent, tileX * scaledTileGlobal, tileY * scaledTileGlobal, tileX, tileY, isPreview, false);
+        let part = new Part(partName, parent, tileX * scaledTileGlobal, tileY * scaledTileGlobal, tileX, tileY, isPreview, false, this.team);
         part.isPreview = isPreview;
         this.parts.push(part);
         return part;
@@ -104,7 +104,7 @@ class Ship {
         }
     }
 
-    Update(dt) {
+    Update(dt, rareUpdate) {
         if (this.mover != null)
             this.mover.Move(this, dt);
 
@@ -117,25 +117,42 @@ class Ship {
             if (part.isBroken)
                 continue;
 
+            let updateFireRate = true;
+
+            if (this.controller != null) {
+                updateFireRate = this.controller.requreFire;
+            }
+
             part.Update(dt);
 
-            if (part.partMeta.fireRate > 0) {
+            if (part.fireMiniCount == 0 && part.partMeta.fireRate > 0) {
                 if (part.fireTime <= 0) {
-                    let pos = new THREE.Vector3();
-                    part.tObject.getWorldPosition(pos);
-                    new Rocket(appGlobal.scene, appGlobal.rockets, pos.x, pos.y, this.tObject.rotation.z, this.mover.speed);
                     part.fireTime = part.partMeta.fireRate;
+                    part.fireMiniCount = part.partMeta.fireMiniCount;
+                    part.fireMiniTime = part.partMeta.fireMiniDelay;
+                }
+            }
+
+            if (updateFireRate) {
+                if (part.fireMiniCount > 0) {
+                    if (part.fireMiniTime <= 0) {
+                        part.fireMiniCount--;
+                        part.fireMiniTime = part.partMeta.fireMiniDelay;
+                        let pos = new THREE.Vector3();
+                        part.tObject.getWorldPosition(pos);
+                        new Rocket(appGlobal.scene, appGlobal.rockets, pos.x, pos.y, this.tObject.rotation.z, this.mover.speed, this.team, part.partMeta.fireRocketType);
+                    }
                 }
             }
         }
     }
 
-    Control(keys, ships, dt) {
+    Control(keys, ships, dt, isRareUpdate) {
         if (this.controller != null && !this.isBroken)
-            this.controller.Control(this, keys, ships, dt);
+            this.controller.Control(this, keys, ships, dt, isRareUpdate);
     }
 
-    ApplyDamage(x, y, radius) {
+    ApplyDamage(x, y, radius, damage) {
         let haveBrokenParts = false;
         for (let i = 0; i < this.parts.length; i++) {
             let part = this.parts[i];
@@ -143,7 +160,7 @@ class Ship {
             part.tObject.getWorldPosition(pos);
             let isHit = MathUtils.isInCircle(pos.x, pos.y, x, y, radius);
             if (isHit && !part.isBroken) {
-                part.ApplyDamage();
+                part.ApplyDamage(damage);
                 if (part.isBroken)
                     haveBrokenParts = true;
             }
