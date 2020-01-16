@@ -396,11 +396,11 @@ class App {
 
 function getShipLocalStorage() {
     let storage = localStorage["ships"];
-    if (storage == null)
+    if (storage == null || storage.length < 1)
         storage = DefaultLocalStorage;
     else {
         storage = JSON.parse(storage);
-        if (storage == null)
+        if (storage == null || storage.length < 1)
             storage = DefaultLocalStorage;
     }
     return storage;
