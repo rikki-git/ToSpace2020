@@ -12,19 +12,27 @@ const PartsMeta = {}
 
 const Parts = {
     cabin: "cabin",
+    cabin_e: "cabin_e",
     turret_03: "turret_03",
     turret_04: "turret_04",
     bridge: "bridge",
     bridgeT: "bridgeT",
     engine: "engine",
+    engine_e: "engine_e",
     hub: "hub",
     hcube: "hcube",
     block: "block",
     bridge_cross: "bridge_cross",
     tilep_00: "tilep_00",
     tilep_01: "tilep_01",
+    wing01: "wing01",
+    wing02: "wing02",
+    roundplate00: "roundplate00",
+    roundplate01: "roundplate01",
     tiler_00: "tiler_00",
     tiler_01: "tiler_01",
+    roundplate02: "roundplate02",
+    roundplate03: "roundplate03",
     tilep_02: "tilep_02",
     tilep_03: "tilep_03",
     tiler_02: "tiler_02",
@@ -32,7 +40,7 @@ const Parts = {
     gyro_00: "gyro_00",
     laser: "laser",
     turret_02: "turret_02",
-    rocketLauncher: "rocketLauncher",
+    canon: "canon",
 }
 
 /** @return {THREE.Sprite} */
@@ -375,8 +383,8 @@ class App {
     }
 
     /**
-     * 
-     * @param {THREE.Object3D} tObject 
+     *
+     * @param {THREE.Object3D} tObject
      * @returns {Part}
      */
     getPartFromTObject(tObject) {
@@ -444,6 +452,7 @@ window.onload = function () {
     AppTextures.Load();
 
     PartsMeta[Parts.cabin].connections.push(new Connection(0, -1));
+    PartsMeta[Parts.cabin_e].connections.push(new Connection(0, -1));
 
     PartsMeta[Parts.tilep_00].flipPartName = Parts.tilep_01;
     PartsMeta[Parts.tilep_00].connections.push(new Connection(1, 0));
@@ -453,6 +462,22 @@ window.onload = function () {
     PartsMeta[Parts.tilep_01].connections.push(new Connection(-1, 0));
     PartsMeta[Parts.tilep_01].connections.push(new Connection(0, -1));
 
+    PartsMeta[Parts.wing01].flipPartName = Parts.wing02;
+    PartsMeta[Parts.wing01].connections.push(new Connection(1, 0));
+    PartsMeta[Parts.wing01].connections.push(new Connection(0, -1));
+
+    PartsMeta[Parts.wing02].flipPartName = Parts.wing01;
+    PartsMeta[Parts.wing02].connections.push(new Connection(-1, 0));
+    PartsMeta[Parts.wing02].connections.push(new Connection(0, -1));
+
+    PartsMeta[Parts.roundplate00].flipPartName = Parts.roundplate01;
+    PartsMeta[Parts.roundplate00].connections.push(new Connection(1, 0));
+    PartsMeta[Parts.roundplate00].connections.push(new Connection(0, -1));
+
+    PartsMeta[Parts.roundplate01].flipPartName = Parts.roundplate00;
+    PartsMeta[Parts.roundplate01].connections.push(new Connection(-1, 0));
+    PartsMeta[Parts.roundplate01].connections.push(new Connection(0, -1));
+
     PartsMeta[Parts.tiler_00].flipPartName = Parts.tiler_01;
     PartsMeta[Parts.tiler_00].connections.push(new Connection(1, 0));
     PartsMeta[Parts.tiler_00].connections.push(new Connection(0, -1));
@@ -460,6 +485,14 @@ window.onload = function () {
     PartsMeta[Parts.tiler_01].flipPartName = Parts.tiler_00;
     PartsMeta[Parts.tiler_01].connections.push(new Connection(-1, 0));
     PartsMeta[Parts.tiler_01].connections.push(new Connection(0, -1));
+
+    PartsMeta[Parts.roundplate02].flipPartName = Parts.roundplate03;
+    PartsMeta[Parts.roundplate02].connections.push(new Connection(-1, 0));
+    PartsMeta[Parts.roundplate02].connections.push(new Connection(0, 1));
+
+    PartsMeta[Parts.roundplate03].flipPartName = Parts.roundplate02;
+    PartsMeta[Parts.roundplate03].connections.push(new Connection(1, 0));
+    PartsMeta[Parts.roundplate03].connections.push(new Connection(0, 1));
 
     PartsMeta[Parts.tilep_02].flipPartName = Parts.tilep_03;
     PartsMeta[Parts.tilep_02].connections.push(new Connection(-1, 0));
@@ -501,6 +534,12 @@ window.onload = function () {
     PartsMeta[Parts.engine].blockConnections.push(new Connection(0, -1));
     PartsMeta[Parts.engine].canFireNearBlocksOnBreak = true;
 
+    PartsMeta[Parts.engine_e].connections.push(new Connection(0, 1));
+    PartsMeta[Parts.engine_e].acceleration = 700;
+    PartsMeta[Parts.engine_e].effects.push(new PartEffect(0, -scaledTileGlobal, "engineFire"));
+    PartsMeta[Parts.engine_e].blockConnections.push(new Connection(0, -1));
+    PartsMeta[Parts.engine_e].canFireNearBlocksOnBreak = true;
+
     PartsMeta[Parts.hub].AddAllConnections();
     PartsMeta[Parts.hcube].AddAllConnections();
     PartsMeta[Parts.block].AddAllConnections();
@@ -511,12 +550,12 @@ window.onload = function () {
     PartsMeta[Parts.gyro_00].rotateSpeed = 7;
     PartsMeta[Parts.gyro_00].canFireNearBlocksOnBreak = true;
 
-    PartsMeta[Parts.rocketLauncher].AddAllConnections();
-    PartsMeta[Parts.rocketLauncher].fireRate = 5;
-    PartsMeta[Parts.rocketLauncher].fireMiniCount = 3;
-    PartsMeta[Parts.rocketLauncher].fireMiniDelay = 0.2;
-    PartsMeta[Parts.rocketLauncher].fireRocketType = RocketTypes.rocket;
-    PartsMeta[Parts.rocketLauncher].canFireNearBlocksOnBreak = true;
+    PartsMeta[Parts.canon].AddAllConnections();
+    PartsMeta[Parts.canon].fireRate = 5;
+    PartsMeta[Parts.canon].fireMiniCount = 3;
+    PartsMeta[Parts.canon].fireMiniDelay = 0.2;
+    PartsMeta[Parts.canon].fireRocketType = RocketTypes.rocket;
+    PartsMeta[Parts.canon].canFireNearBlocksOnBreak = true;
 
     app.InitialSpawn();
 

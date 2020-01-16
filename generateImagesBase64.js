@@ -10,6 +10,8 @@ fs.readdir(directoryPath, function (err, files) {
         return console.log('Unable to scan directory: ' + err);
     }
 
+    files.sort();
+
     let count = 0;
     let save = "const AppTexturesGenerated = {\n";
     //listing all files using forEach

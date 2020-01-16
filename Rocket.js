@@ -50,8 +50,12 @@ class Rocket {
             return;
         }
 
-        if (this.rocketType == RocketTypes.laserBullet)
-            this.tObject.scale.y = this.timer / this.initialTimer * this.initialScaleY;
+        if (this.rocketType == RocketTypes.laserBullet) {
+            let newScale = this.timer / this.initialTimer * this.initialScaleY;
+            if (newScale < 0.1)
+                newScale = 0.1;
+            this.tObject.scale.y = newScale;
+        }
 
         if (this.gapAngleSpeed != 0) {
             this.Rotate(this.tObject.rotation.z + this.gapAngleSpeed);

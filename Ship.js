@@ -22,7 +22,7 @@ class Ship {
         this.CreatePart(Parts.tilep_01, 2, -1, false);
         this.CreatePart(Parts.tilep_00, -1, 1, false);
         this.CreatePart(Parts.tilep_01, 1, 1, false);
-        this.CreatePart(Parts.rocketLauncher, 0, -1, false);
+        this.CreatePart(Parts.canon, 0, -1, false);
         this.CreatePart(Parts.engine, 0, -2, false);
         this.CreatePart(Parts.engine, -1, -2, false);
         this.CreatePart(Parts.engine, 1, -2, false);
@@ -189,7 +189,7 @@ class Ship {
                     if (part.fireMiniTime <= 0) {
                         part.fireMiniCount--;
                         part.fireMiniTime = part.partMeta.fireMiniDelay;
-                        new Rocket(appGlobal.scene, appGlobal.rockets, pos.x, pos.y, this.tObject.rotation.z, this.mover.speed, this.team, part.partMeta.fireRocketType);
+                        part.Fire(this.mover.speed, this.tObject.rotation.z);
                     }
                 }
             }
