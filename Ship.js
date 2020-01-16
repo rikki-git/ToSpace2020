@@ -44,6 +44,9 @@ class Ship {
         if (savedata == null)
             savedata = [];
 
+        if (savedata.length < 1)
+            savedata.push({ name: Parts.hcube, x: 0, y: 0 });
+
         for (let i = 0; i < savedata.length; i++) {
             let partData = savedata[i];
             this.CreatePart(partData.name, partData.x, partData.y, false);

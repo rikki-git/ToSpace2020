@@ -10,12 +10,15 @@ fs.readdir(directoryPath, function (err, files) {
         return console.log('Unable to scan directory: ' + err);
     }
 
-    files.sort();
+    files.sort(function (a, b) {
+        return a.localeCompare(b);
+    });
 
     let count = 0;
-    let save = "const AppTexturesGenerated = {\n";
-    //listing all files using forEach
-    files.forEach(function (file) {
+    let strings = {};
+
+    for (let i = 0; i < files.length; i++) {
+        let file = files[i];
         // Do whatever you want to do with the file
         console.log("FILE: " + file);
         fs.readFile("textures" + "/" + file, 'binary', function (error, data) {
@@ -23,17 +26,23 @@ fs.readdir(directoryPath, function (err, files) {
                 console.log(error);
                 return;
             }
-            var buf = new Buffer(data, 'binary');
-            var string = "data:image/png;base64," + buf.toString('base64');
 
+            let buf = new Buffer(data, 'binary');
+            let string = "data:image/png;base64," + buf.toString('base64');
             let token = file.replace('.png', '');
+            strings[file] = token + ": \"" + string + "\",\n";
             count++;
-            save += token + ": \"" + string + "\",\n";
 
             if (count == files.length) {
+                let save = "const AppTexturesGenerated = {\n";
+                for (let j = 0; j < files.length; j++) {
+                    let file = files[j];
+                    let fileData = strings[file];
+                    save += fileData;
+                }
                 save += "invalid: \"\" }";
                 fs.writeFileSync("generatedTextures.js", save);
             }
         });
-    });
+    }
 });

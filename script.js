@@ -11,36 +11,41 @@ const NoTeam = "";
 const PartsMeta = {}
 
 const Parts = {
-    cabin: "cabin",
-    cabin_e: "cabin_e",
-    turret_03: "turret_03",
-    turret_04: "turret_04",
-    bridge: "bridge",
-    bridgeT: "bridgeT",
-    engine: "engine",
-    engine_e: "engine_e",
-    hub: "hub",
-    hcube: "hcube",
-    block: "block",
-    bridge_cross: "bridge_cross",
-    tilep_00: "tilep_00",
-    tilep_01: "tilep_01",
-    wing01: "wing01",
-    wing02: "wing02",
-    roundplate00: "roundplate00",
-    roundplate01: "roundplate01",
-    tiler_00: "tiler_00",
-    tiler_01: "tiler_01",
-    roundplate02: "roundplate02",
-    roundplate03: "roundplate03",
-    tilep_02: "tilep_02",
-    tilep_03: "tilep_03",
-    tiler_02: "tiler_02",
-    tiler_03: "tiler_03",
-    gyro_00: "gyro_00",
-    laser: "laser",
-    turret_02: "turret_02",
-    canon: "canon",
+    cabin: 0,
+    cabin_e: 0,
+    flip_turret_03: 0,
+    turret_03: 0,
+    bridge: 0,
+    bridgeT: 0,
+    engine: 0,
+    engine_e: 0,
+    hub: 0,
+    hcube: 0,
+    block: 0,
+    bridge_cross: 0,
+    flip_tilep_01: 0,
+    tilep_01: 0,
+    flip_wing02: 0,
+    wing02: 0,
+    flip_roundplate01: 0,
+    roundplate01: 0,
+    flip_tiler_01: 0,
+    tiler_01: 0,
+    flip_roundplate02: 0,
+    roundplate02: 0,
+    flip_tilep_02: 0,
+    tilep_02: 0,
+    flip_tiler_02: 0,
+    tiler_02: 0,
+    gyro_00: 0,
+    laser: 0,
+    turret_02: 0,
+    canon: 0,
+}
+
+for (let i in Parts) {
+    if (Parts.hasOwnProperty(i))
+        Parts[i] = i;
 }
 
 /** @return {THREE.Sprite} */
@@ -99,7 +104,6 @@ class App {
         for (var i in Parts) {
             partsArr.push(i);
         }
-        partsArr.sort();
 
         let row = 0;
         let column = 0;
@@ -113,7 +117,7 @@ class App {
             }
 
             let x = column * 100;
-            let y = row * 100 + 200;
+            let y = -row * 100 + 200;
             let partName = Parts[partsArr[i]];
             new Part(partName, this.groupLoot, x, y, 0, 0, false, true, NoTeam);
         }
@@ -425,6 +429,7 @@ class App {
                 storage = DefaultLocalStorage.Ships;
             }
         }
+
         return storage;
     }
 
@@ -533,69 +538,69 @@ window.onload = function () {
     PartsMeta[Parts.cabin].connections.push(new Connection(0, -1));
     PartsMeta[Parts.cabin_e].connections.push(new Connection(0, -1));
 
-    PartsMeta[Parts.tilep_00].flipPartName = Parts.tilep_01;
-    PartsMeta[Parts.tilep_00].connections.push(new Connection(1, 0));
-    PartsMeta[Parts.tilep_00].connections.push(new Connection(0, -1));
+    PartsMeta[Parts.flip_tilep_01].flipPartName = Parts.tilep_01;
+    PartsMeta[Parts.flip_tilep_01].connections.push(new Connection(1, 0));
+    PartsMeta[Parts.flip_tilep_01].connections.push(new Connection(0, -1));
 
-    PartsMeta[Parts.tilep_01].flipPartName = Parts.tilep_00;
+    PartsMeta[Parts.tilep_01].flipPartName = Parts.flip_tilep_01;
     PartsMeta[Parts.tilep_01].connections.push(new Connection(-1, 0));
     PartsMeta[Parts.tilep_01].connections.push(new Connection(0, -1));
 
-    PartsMeta[Parts.wing01].flipPartName = Parts.wing02;
-    PartsMeta[Parts.wing01].connections.push(new Connection(1, 0));
-    PartsMeta[Parts.wing01].connections.push(new Connection(0, -1));
+    PartsMeta[Parts.flip_wing02].flipPartName = Parts.wing02;
+    PartsMeta[Parts.flip_wing02].connections.push(new Connection(1, 0));
+    PartsMeta[Parts.flip_wing02].connections.push(new Connection(0, -1));
 
-    PartsMeta[Parts.wing02].flipPartName = Parts.wing01;
+    PartsMeta[Parts.wing02].flipPartName = Parts.flip_wing02;
     PartsMeta[Parts.wing02].connections.push(new Connection(-1, 0));
     PartsMeta[Parts.wing02].connections.push(new Connection(0, -1));
 
-    PartsMeta[Parts.roundplate00].flipPartName = Parts.roundplate01;
-    PartsMeta[Parts.roundplate00].connections.push(new Connection(1, 0));
-    PartsMeta[Parts.roundplate00].connections.push(new Connection(0, -1));
+    PartsMeta[Parts.flip_roundplate01].flipPartName = Parts.roundplate01;
+    PartsMeta[Parts.flip_roundplate01].connections.push(new Connection(1, 0));
+    PartsMeta[Parts.flip_roundplate01].connections.push(new Connection(0, -1));
 
-    PartsMeta[Parts.roundplate01].flipPartName = Parts.roundplate00;
+    PartsMeta[Parts.roundplate01].flipPartName = Parts.flip_roundplate01;
     PartsMeta[Parts.roundplate01].connections.push(new Connection(-1, 0));
     PartsMeta[Parts.roundplate01].connections.push(new Connection(0, -1));
 
-    PartsMeta[Parts.tiler_00].flipPartName = Parts.tiler_01;
-    PartsMeta[Parts.tiler_00].connections.push(new Connection(1, 0));
-    PartsMeta[Parts.tiler_00].connections.push(new Connection(0, -1));
+    PartsMeta[Parts.flip_tiler_01].flipPartName = Parts.tiler_01;
+    PartsMeta[Parts.flip_tiler_01].connections.push(new Connection(1, 0));
+    PartsMeta[Parts.flip_tiler_01].connections.push(new Connection(0, -1));
 
-    PartsMeta[Parts.tiler_01].flipPartName = Parts.tiler_00;
+    PartsMeta[Parts.tiler_01].flipPartName = Parts.flip_tiler_01;
     PartsMeta[Parts.tiler_01].connections.push(new Connection(-1, 0));
     PartsMeta[Parts.tiler_01].connections.push(new Connection(0, -1));
 
-    PartsMeta[Parts.roundplate02].flipPartName = Parts.roundplate03;
+    PartsMeta[Parts.roundplate02].flipPartName = Parts.flip_roundplate02;
     PartsMeta[Parts.roundplate02].connections.push(new Connection(-1, 0));
     PartsMeta[Parts.roundplate02].connections.push(new Connection(0, 1));
 
-    PartsMeta[Parts.roundplate03].flipPartName = Parts.roundplate02;
-    PartsMeta[Parts.roundplate03].connections.push(new Connection(1, 0));
-    PartsMeta[Parts.roundplate03].connections.push(new Connection(0, 1));
+    PartsMeta[Parts.flip_roundplate02].flipPartName = Parts.roundplate02;
+    PartsMeta[Parts.flip_roundplate02].connections.push(new Connection(1, 0));
+    PartsMeta[Parts.flip_roundplate02].connections.push(new Connection(0, 1));
 
-    PartsMeta[Parts.tilep_02].flipPartName = Parts.tilep_03;
+    PartsMeta[Parts.tilep_02].flipPartName = Parts.flip_tilep_02;
     PartsMeta[Parts.tilep_02].connections.push(new Connection(-1, 0));
     PartsMeta[Parts.tilep_02].connections.push(new Connection(0, 1));
 
-    PartsMeta[Parts.tilep_03].flipPartName = Parts.tilep_02;
-    PartsMeta[Parts.tilep_03].connections.push(new Connection(1, 0));
-    PartsMeta[Parts.tilep_03].connections.push(new Connection(0, 1));
+    PartsMeta[Parts.flip_tilep_02].flipPartName = Parts.tilep_02;
+    PartsMeta[Parts.flip_tilep_02].connections.push(new Connection(1, 0));
+    PartsMeta[Parts.flip_tilep_02].connections.push(new Connection(0, 1));
 
-    PartsMeta[Parts.tiler_02].flipPartName = Parts.tiler_03;
+    PartsMeta[Parts.tiler_02].flipPartName = Parts.flip_tiler_02;
     PartsMeta[Parts.tiler_02].connections.push(new Connection(-1, 0));
     PartsMeta[Parts.tiler_02].connections.push(new Connection(0, 1));
 
-    PartsMeta[Parts.tiler_03].flipPartName = Parts.tiler_02;
-    PartsMeta[Parts.tiler_03].connections.push(new Connection(1, 0));
-    PartsMeta[Parts.tiler_03].connections.push(new Connection(0, 1));
+    PartsMeta[Parts.flip_tiler_02].flipPartName = Parts.tiler_02;
+    PartsMeta[Parts.flip_tiler_02].connections.push(new Connection(1, 0));
+    PartsMeta[Parts.flip_tiler_02].connections.push(new Connection(0, 1));
 
     PartsMeta[Parts.turret_03].connections.push(new Connection(-1, 0));
     PartsMeta[Parts.turret_03].fireRate = 0.3;
-    PartsMeta[Parts.turret_03].flipPartName = Parts.turret_04;
+    PartsMeta[Parts.turret_03].flipPartName = Parts.flip_turret_03;
 
-    PartsMeta[Parts.turret_04].connections.push(new Connection(1, 0));
-    PartsMeta[Parts.turret_04].fireRate = 0.3;
-    PartsMeta[Parts.turret_04].flipPartName = Parts.turret_03;
+    PartsMeta[Parts.flip_turret_03].connections.push(new Connection(1, 0));
+    PartsMeta[Parts.flip_turret_03].fireRate = 0.3;
+    PartsMeta[Parts.flip_turret_03].flipPartName = Parts.turret_03;
 
     PartsMeta[Parts.turret_02].connections.push(new Connection(0, -1));
     PartsMeta[Parts.turret_02].fireRate = 0.3;
