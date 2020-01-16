@@ -44,7 +44,8 @@
                 style="background-color: black; padding-left: 10px; padding-right: 10px; padding-bottom: 10px; margin-bottom: 10px;">
                 <p>Ship name</p>
                 <input id="saveShipInput" type="text" size="40">
-                <button onclick="savePlayerShipToLocalStorage()"> Save </button>
+                <button onclick="appGlobal.savePlayerShipToLocalStorage()"> Save </button>
+                <button onclick="alert(localStorage.ships)"> JSON </button>
             </div>
 
             <div id="shipsBrowserPanelPrefab"

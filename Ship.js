@@ -20,10 +20,8 @@ class Ship {
         scene.add(this.tObject);
         ships.push(this);
         this.isBroken = false;
+        this.waitDestroy = false;
         this.UpdateShipStats();
-
-        //this.mover.speed = 100;
-        //this.ApplyDamage(0, 0, 1000, 1000);
     }
 
     Save(name) {
@@ -34,13 +32,14 @@ class Ship {
             savedata.push(partData);
         }
 
-        let storage = getShipLocalStorage();
+        let storage = appGlobal.getShipLocalStorage();
         storage[name] = savedata;
         localStorage["ships"] = JSON.stringify(storage);
+        console.log("Saved " + name);
     }
 
     Load(name) {
-        let storage = getShipLocalStorage();
+        let storage = appGlobal.getShipLocalStorage();
         let savedata = storage[name];
         if (savedata == null)
             savedata = [];
@@ -57,8 +56,8 @@ class Ship {
     UpdateShipStats() {
         let mass = 0;
         let maxSpeed = 350;
-        let acceleration = 50;
-        let rotateSpeed = 0.8;
+        let acceleration = 0;
+        let rotateSpeed = 0;
         let hasLivingParts = false;
 
         for (let i = 0; i < this.parts.length; i++) {
@@ -74,7 +73,7 @@ class Ship {
             acceleration += meta.acceleration;
 
             if (meta.acceleration > 0)
-                maxSpeed = 550;
+                maxSpeed = 600;
 
             rotateSpeed += meta.rotateSpeed;
         }
@@ -93,8 +92,8 @@ class Ship {
 
             for (let i = 0; i < this.parts.length; i++) {
                 let part = this.parts[i];
-                part.tObject.position.x += (Math.random() - 0.5) * 20;
-                part.tObject.position.y += (Math.random() - 0.5) * 20;
+                part.tObject.position.x += (Math.random() - 0.5) * 15;
+                part.tObject.position.y += (Math.random() - 0.5) * 15;
                 part.tObject.material.rotation += (Math.random() - 0.5) * 10;
 
                 if (Math.random() < 0.3 && explosions > 0) {
@@ -116,7 +115,8 @@ class Ship {
         let part = new Part(partName, parent, tileX * scaledTileGlobal, tileY * scaledTileGlobal, tileX, tileY, isPreview, false, this.team);
         part.isPreview = isPreview;
         this.parts.push(part);
-        this.partsHash[tileX + "_" + tileY] = part;
+        if (!isPreview)
+            this.partsHash[tileX + "_" + tileY] = part;
         return part;
     }
 
@@ -161,6 +161,15 @@ class Ship {
                 let my = this.mover.speed * 0.2 * Math.cos(part.tObject.material.rotation) * dt;
                 part.tObject.position.x += mx;
                 part.tObject.position.y += my;
+
+                let newOpacity = 0;
+                if (part.tObject.material.opacity > 0)
+                    newOpacity = part.tObject.material.opacity - dt * 0.1;
+                if (newOpacity < 0.01) {
+                    newOpacity = 0.01;
+                    this.waitDestroy = true;
+                }
+                part.tObject.material.opacity = newOpacity;
             }
             return;
         }
@@ -272,6 +281,22 @@ class Ship {
 
         this.Rotate(this.tObject.rotation.z);
         this.UpdateShipStats();
+    }
+
+    Dispose() {
+        this.DisposePlaceables();
+        let disposeParts = [];
+        for (let i = this.parts.length - 1; i >= 0; i--) {
+            let part = this.parts[i];
+            disposeParts.push(part);
+            this.parts.splice(i, 1);
+        }
+
+        for (let i = 0; i < disposeParts.length; i++) {
+            let part = disposeParts[i];
+            this.tObject.remove(part.tObject);
+            part.Dispose(this.tObject);
+        }
     }
 
     DisposePlaceables() {

@@ -120,7 +120,7 @@ class App {
 
         this.scene.add(this.groupLoot);
 
-        let player = new Ship(this.scene, this.ships, "team1", null);
+        let player = new Ship(this.scene, this.ships, "team1", "Mini");
         player.controller = new PlayerShip();
     }
 
@@ -233,7 +233,7 @@ class App {
             }
         }
 
-        for (let i = 0; i < this.ships.length; i++) {
+        for (let i = this.ships.length - 1; i >= 0; i--) {
             let c = this.ships[i];
 
             c.Update(dt, rareUpdate);
@@ -242,6 +242,12 @@ class App {
             if (c.controller != null && c.controller.isPlayer === true) {
                 this.camera.position.x = c.tObject.position.x;
                 this.camera.position.y = c.tObject.position.y;
+            }
+
+            if (c.waitDestroy) {
+                this.scene.remove(c.tObject);
+                this.ships.splice(i, 1);
+                c.Dispose();
             }
         }
 
@@ -392,77 +398,90 @@ class App {
     handleBlur(e) {
         this.keys = {};
     }
-}
 
-function getShipLocalStorage() {
-    let storage = localStorage["ships"];
-    if (storage == null)
-        storage = DefaultLocalStorage.Ships;
-    else {
-        storage = JSON.parse(storage);
+    getShipLocalStorage() {
+        let storage = localStorage["ships"];
         if (storage == null)
             storage = DefaultLocalStorage.Ships;
+        else {
+            try {
+                storage = JSON.parse(storage);
+            } catch (err) {
+                storage = null;
+                console.error(err);
+            }
+            if (storage == null)
+                storage = DefaultLocalStorage.Ships;
 
-        let haveShips = false;
-        for (let i in storage) {
-            haveShips = true;
-            break;
+            let haveShips = false;
+            for (let i in storage) {
+                if (storage.hasOwnProperty(i)) {
+                    haveShips = true;
+                    break;
+                }
+            }
+
+            if (!haveShips) {
+                storage = DefaultLocalStorage.Ships;
+            }
+        }
+        return storage;
+    }
+
+    deleteShipFromLocalStorage(name) {
+        let storage = this.getShipLocalStorage();
+        delete storage[name];
+        localStorage["ships"] = JSON.stringify(storage);
+        this.createShipsBrowserPanels();
+    }
+
+    spawnShipPlayerFromLocalStorage(name) {
+        let p = appGlobal.getPlayer();
+        if (p != null) {
+            p.controller = null;
+            p.waitDestroy = true;
         }
 
-        if (!haveShips)
-            storage = DefaultLocalStorage.Ships;
+        let player = new Ship(appGlobal.scene, appGlobal.ships, "team1", name);
+        player.controller = new PlayerShip();
+
+        document.getElementById('shipsBrowser').style.display = 'none';
     }
-    return storage;
-}
 
-function deleteShipFromLocalStorage(name) {
-    let storage = getShipLocalStorage();
-    delete storage[name];
-    localStorage["ships"] = JSON.stringify(storage);
-    createShipsBrowserPanels();
-}
+    spawnShipBotFromLocalStorage(name) {
+        let bot = new Ship(appGlobal.scene, appGlobal.ships, "team2", name);
+        bot.controller = new BotShip();
+        bot.tObject.position.y = 1000;
+    }
 
-function spawnShipPlayerFromLocalStorage(name) {
-    let p = appGlobal.getPlayer();
-    if (p != null)
-        p.controller = null;
-
-    let player = new Ship(appGlobal.scene, appGlobal.ships, "team1", name);
-    player.controller = new PlayerShip();
-}
-
-function spawnShipBotFromLocalStorage(name) {
-    let bot = new Ship(appGlobal.scene, appGlobal.ships, "team2", name);
-    bot.controller = new BotShip();
-}
-
-function savePlayerShipToLocalStorage() {
-    /** @type {any} */
-    let t = document.getElementById("saveShipInput")
-    let name = t.value;
-    if (name == "")
-        return;
-    appGlobal.getPlayer().Save(name);
-    createShipsBrowserPanels();
-}
-
-function createShipsBrowserPanels() {
-    /** @type {any} */
-    let container = document.getElementById("shipsBrowserPanelsContainer");
-    container.innerHTML = "";
-
-    let prefab = document.getElementById("shipsBrowserPanelPrefab");
-    let storage = getShipLocalStorage();
-
-    for (let i in storage) {
+    savePlayerShipToLocalStorage() {
         /** @type {any} */
-        let p = prefab.cloneNode(true);
-        p.style.display = "block";
-        p.children[3].innerHTML = i;
-        p.children[2].onclick = function (e) { deleteShipFromLocalStorage(e.target.parentNode.children[3].innerHTML) }
-        p.children[1].onclick = function (e) { spawnShipPlayerFromLocalStorage(e.target.parentNode.children[3].innerHTML) }
-        p.children[0].onclick = function (e) { spawnShipBotFromLocalStorage(e.target.parentNode.children[3].innerHTML) }
-        container.appendChild(p);
+        let t = document.getElementById("saveShipInput")
+        let name = t.value;
+        if (name == "")
+            return;
+        appGlobal.getPlayer().Save(name);
+        this.createShipsBrowserPanels();
+    }
+
+    createShipsBrowserPanels() {
+        /** @type {any} */
+        let container = document.getElementById("shipsBrowserPanelsContainer");
+        container.innerHTML = "";
+
+        let prefab = document.getElementById("shipsBrowserPanelPrefab");
+        let storage = this.getShipLocalStorage();
+
+        for (let i in storage) {
+            /** @type {any} */
+            let p = prefab.cloneNode(true);
+            p.style.display = "block";
+            p.children[3].innerHTML = i;
+            p.children[2].onclick = function (e) { appGlobal.deleteShipFromLocalStorage(e.target.parentNode.children[3].innerHTML) }
+            p.children[1].onclick = function (e) { appGlobal.spawnShipPlayerFromLocalStorage(e.target.parentNode.children[3].innerHTML) }
+            p.children[0].onclick = function (e) { appGlobal.spawnShipBotFromLocalStorage(e.target.parentNode.children[3].innerHTML) }
+            container.appendChild(p);
+        }
     }
 }
 
@@ -639,6 +658,5 @@ window.onload = function () {
     }
     animationFrame();
 
-
-    createShipsBrowserPanels();
+    appGlobal.createShipsBrowserPanels();
 }
