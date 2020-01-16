@@ -6,6 +6,7 @@
     <script src="three.min.js"></script>
     <script src="Stats.js"></script>
     <script src="MathUtils.js"></script>
+    <script src="DefaultLocalStorage.js"></script>
     <script src="PartMeta.js"></script>
     <script src="Part.js"></script>
     <script src="Connection.js"></script>
@@ -23,6 +24,50 @@
     <link type="text/css" rel="stylesheet" href="main.css">
 </head>
 
-<body style="width: 100%; height: 100%; padding: 0; margin: 0;"></body>
+<body style="width: 100%; height: 100%; padding: 0; margin: 0;">
+
+    <button style="position: absolute; top: 0; right: 0;"
+        onclick="document.getElementById('shipsBrowser').style.display='block';"> Ships </button>
+
+
+    <div id="shipsBrowser"
+        style="background-color: gray; left: 30px; right: 30px; top: 30px; bottom: 30px; position: absolute; z-index: 11000; display: none;">
+        <div style="background-color: black; width: 100%; text-align: center; height: 30px; ">
+            Ships browser
+            <button onclick="document.getElementById('shipsBrowser').style.display='none';"
+                style="float: right;">X</button>
+        </div>
+
+        <div id="shipsBrowserPanels"
+            style="padding-left: 10px; padding-right: 10px; padding-top: 0px;  overflow: auto; height: 90%;">
+            <div
+                style="background-color: black; padding-left: 10px; padding-right: 10px; padding-bottom: 10px; margin-bottom: 10px;">
+                <p>Ship name</p>
+                <input id="saveShipInput" type="text" size="40">
+                <button onclick="savePlayerShipToLocalStorage()"> Save </button>
+            </div>
+
+            <div id="shipsBrowserPanelPrefab"
+                style="background-color: black; padding: 10px; height: 25px; margin: 5px; display: none;">
+                <button style="float: left; margin-left: 5px;"> Spawn bot </button>
+                <button style="float: left; margin-left: 10px;"> Spawn player </button>
+                <button style="float: left; margin-left: 10px;"> Delete </button>
+                <p style="float: left;  margin-left: 10px;margin-top: 0; margin-bottom: 10px; height: 25px;">
+                    Megaturboship</p>
+            </div>
+
+            <div id="shipsBrowserPanelsContainer">
+            </div>
+        </div>
+    </div>
+
+
+
+</body>
+
+
+
+
+
 
 </html>

@@ -1,6 +1,6 @@
 class Ship {
     /** @param {string} team */
-    constructor(scene, ships, team) {
+    constructor(scene, ships, team, shipToLoad) {
         this.team = team;
         this.tObject = new THREE.Object3D();
         this.tPartsPreview = new THREE.Group();
@@ -8,26 +8,13 @@ class Ship {
         /** @type {Part[]} */
         this.parts = [];
         this.partsHash = {};
-
-        this.CreatePart(Parts.cabin, 0, 2, false);
-        this.CreatePart(Parts.hub, 0, 1, false);
-        this.CreatePart(Parts.hcube, 0, 0, false);
-        this.CreatePart(Parts.block, -1, 0, false);
-        this.CreatePart(Parts.block, 1, 0, false);
-        this.CreatePart(Parts.turret_04, -2, 0, false);
-        this.CreatePart(Parts.turret_03, 2, 0, false);
-        this.CreatePart(Parts.gyro_00, -1, -1, false);
-        this.CreatePart(Parts.gyro_00, 1, -1, false);
-        this.CreatePart(Parts.tilep_00, -2, -1, false);
-        this.CreatePart(Parts.tilep_01, 2, -1, false);
-        this.CreatePart(Parts.tilep_00, -1, 1, false);
-        this.CreatePart(Parts.tilep_01, 1, 1, false);
-        this.CreatePart(Parts.canon, 0, -1, false);
-        this.CreatePart(Parts.engine, 0, -2, false);
-        this.CreatePart(Parts.engine, -1, -2, false);
-        this.CreatePart(Parts.engine, 1, -2, false);
-
         this.mover = new ShipMover();
+
+        if (shipToLoad == null)
+            this.CreatePart(Parts.hcube, 0, 0, false);
+        else
+            this.Load(shipToLoad);
+
         this.controller = null;
         this.Rotate(0);
         scene.add(this.tObject);
@@ -37,6 +24,34 @@ class Ship {
 
         //this.mover.speed = 100;
         //this.ApplyDamage(0, 0, 1000, 1000);
+    }
+
+    Save(name) {
+        let savedata = [];
+        for (let i = 0; i < this.parts.length; i++) {
+            let part = this.parts[i];
+            let partData = { name: part.partName, x: part.tileX, y: part.tileY };
+            savedata.push(partData);
+        }
+
+        let storage = getShipLocalStorage();
+        storage[name] = savedata;
+        localStorage["ships"] = JSON.stringify(storage);
+    }
+
+    Load(name) {
+        let storage = getShipLocalStorage();
+        let savedata = storage[name];
+        if (savedata == null)
+            savedata = [];
+
+        for (let i = 0; i < savedata.length; i++) {
+            let partData = savedata[i];
+            this.CreatePart(partData.name, partData.x, partData.y, false);
+        }
+
+        this.Rotate(this.tObject.rotation.z);
+        this.UpdateShipStats();
     }
 
     UpdateShipStats() {

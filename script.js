@@ -60,7 +60,7 @@ class App {
 
         let width = window.innerWidth;
         let height = window.innerHeight;
-        this.camera = new THREE.OrthographicCamera(- width / 2, width / 2, height / 2, - height / 2, 0, 10);
+        this.camera = new THREE.OrthographicCamera(-width / 2, width / 2, height / 2, -height / 2, 0, 10);
         this.camera.position.z = 10;
 
         this.scene = new THREE.Scene();
@@ -97,51 +97,31 @@ class App {
     InitialSpawn() {
         let partsArr = [];
         for (var i in Parts) {
-            if (i == Parts.cabin)
-                continue;
             partsArr.push(i);
         }
+        partsArr.sort();
+
+        let row = 0;
+        let column = 0;
 
         for (let i = 0; i < partsArr.length; i++) {
-            let x = i * 100;
-            for (let j = 0; j < 10; j++) {
-                let y = j * 100 + 500;
-                let partName = Parts[partsArr[i]];
-                new Part(partName, this.groupLoot, x, y, 0, 0, false, true, NoTeam);
+
+            column++;
+            if (column > 5) {
+                column = 1;
+                row++;
             }
+
+            let x = column * 100;
+            let y = row * 100 + 200;
+            let partName = Parts[partsArr[i]];
+            new Part(partName, this.groupLoot, x, y, 0, 0, false, true, NoTeam);
         }
 
         this.scene.add(this.groupLoot);
 
-        let s1 = new Ship(this.scene, this.ships, "kakashki");
-        s1.tObject.position.x += 700;
-        s1.controller = new BotShip();
-        s1.Rotate(4);
-
-        let s2 = new Ship(this.scene, this.ships, "pirate");
-        s2.tObject.position.x -= 700;
-        s2.controller = new BotShip();
-        s2.Rotate(2);
-
-        let player = new Ship(this.scene, this.ships, "nyashki");
-        player.tObject.position.x -= 1000;
-        player.tObject.position.y += 1000;
-        player.Rotate(4);
+        let player = new Ship(this.scene, this.ships, "team1", null);
         player.controller = new PlayerShip();
-
-        for (let i = 2; i < 2 + 3; i++) {
-            let s = new Ship(this.scene, this.ships, "1");
-            s.tObject.position.x -= 700 * i;
-            s.controller = new BotShip();
-            s.Rotate(2);
-        }
-
-        for (let i = 2; i < 2 + 3; i++) {
-            let s = new Ship(this.scene, this.ships, "2");
-            s.tObject.position.x += 700 * i;
-            s.controller = new BotShip();
-            s.Rotate(2);
-        }
     }
 
     /** @returns {Ship} */
@@ -341,6 +321,10 @@ class App {
     }
 
     handleKey(e, status) {
+
+        if (document.getElementById("shipsBrowser").style.display == "block")
+            return;
+
         let code = e.keyCode;
 
         // F5
@@ -373,8 +357,8 @@ class App {
         if (this.undermouseLoot != null) {
             let part = this.getPartFromTObject(this.undermouseLoot);
             const partName = part.partName;
-            this.groupLoot.remove(this.undermouseLoot);
-            part.Dispose(this.groupLoot);
+            //this.groupLoot.remove(this.undermouseLoot);
+            //part.Dispose(this.groupLoot);
             this.undermouseLoot = null;
 
             if (player != null)
@@ -410,6 +394,69 @@ class App {
     }
 }
 
+function getShipLocalStorage() {
+    let storage = localStorage["ships"];
+    if (storage == null)
+        storage = DefaultLocalStorage;
+    else {
+        storage = JSON.parse(storage);
+        if (storage == null)
+            storage = DefaultLocalStorage;
+    }
+    return storage;
+}
+
+function deleteShipFromLocalStorage(name) {
+    let storage = getShipLocalStorage();
+    delete storage[name];
+    localStorage["ships"] = JSON.stringify(storage);
+    createShipsBrowserPanels();
+}
+
+function spawnShipPlayerFromLocalStorage(name) {
+    let p = appGlobal.getPlayer();
+    if (p != null)
+        p.controller = null;
+
+    let player = new Ship(appGlobal.scene, appGlobal.ships, "team1", name);
+    player.controller = new PlayerShip();
+}
+
+function spawnShipBotFromLocalStorage(name) {
+    let bot = new Ship(appGlobal.scene, appGlobal.ships, "team2", name);
+    bot.controller = new BotShip();
+}
+
+function savePlayerShipToLocalStorage() {
+    /** @type {any} */
+    let t = document.getElementById("saveShipInput")
+    let name = t.value;
+    if (name == "")
+        return;
+    appGlobal.getPlayer().Save(name);
+    createShipsBrowserPanels();
+}
+
+function createShipsBrowserPanels() {
+    /** @type {any} */
+    let container = document.getElementById("shipsBrowserPanelsContainer");
+    container.innerHTML = "";
+
+    let prefab = document.getElementById("shipsBrowserPanelPrefab");
+    let storage = getShipLocalStorage();
+
+    for (let i in storage) {
+        /** @type {any} */
+        let p = prefab.cloneNode(true);
+        p.style.display = "block";
+        p.children[3].innerHTML = i;
+        p.children[2].onclick = function (e) { deleteShipFromLocalStorage(e.target.parentNode.children[3].innerHTML) }
+        p.children[1].onclick = function (e) { spawnShipPlayerFromLocalStorage(e.target.parentNode.children[3].innerHTML) }
+        p.children[0].onclick = function (e) { spawnShipBotFromLocalStorage(e.target.parentNode.children[3].innerHTML) }
+        container.appendChild(p);
+    }
+}
+
 window.onload = function () {
     let app = new App();
     appGlobal = app;
@@ -423,7 +470,11 @@ window.onload = function () {
     document.addEventListener('keyup', function (e) { app.handleKey(e, false); });
     window.addEventListener('blur', function (e) { app.handleBlur(e); });
     domElement.oncontextmenu = function (e) { e.preventDefault(); return false; };
-    domElement.onclick = function (e) { e.preventDefault(); app.handleClick(e); return false; };
+    domElement.onclick = function (e) {
+        if (document.getElementById("shipsBrowser").style.display == "block")
+            return;
+        e.preventDefault(); app.handleClick(e); return false;
+    };
 
     AppTextures.callbacks.sprite0 = function (t) {
         app.createHUDSprites(t);
@@ -446,7 +497,7 @@ window.onload = function () {
     }
 
     AppTextures.callbacks.fire = function (t) {
-        app.animators.push(new TextureAnimator(t, 2, 2, 4, 100));
+        app.animators.push(new TextureAnimator(t, 4, 1, 4, 100));
     }
 
     AppTextures.Load();
@@ -578,4 +629,7 @@ window.onload = function () {
         app.render();
     }
     animationFrame();
+
+
+    createShipsBrowserPanels();
 }
