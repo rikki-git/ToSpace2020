@@ -111,7 +111,7 @@ class App {
         for (let i = 0; i < partsArr.length; i++) {
 
             column++;
-            if (column > 5) {
+            if (column > 8) {
                 column = 1;
                 row++;
             }
@@ -627,7 +627,6 @@ window.onload = function () {
     PartsMeta[Parts.hub].AddAllConnections();
     PartsMeta[Parts.hcube].AddAllConnections();
     PartsMeta[Parts.block].AddAllConnections();
-    PartsMeta[Parts.laser].AddAllConnections();
     PartsMeta[Parts.bridge_cross].AddAllConnections();
 
     PartsMeta[Parts.gyro_00].AddAllConnections();
@@ -640,6 +639,13 @@ window.onload = function () {
     PartsMeta[Parts.canon].fireMiniDelay = 0.2;
     PartsMeta[Parts.canon].fireRocketType = RocketTypes.rocket;
     PartsMeta[Parts.canon].canFireNearBlocksOnBreak = true;
+
+    PartsMeta[Parts.laser].AddAllConnections();
+    PartsMeta[Parts.laser].fireRate = 1;
+    PartsMeta[Parts.laser].fireMiniCount = 3;
+    PartsMeta[Parts.laser].fireMiniDelay = 0.1;
+    PartsMeta[Parts.laser].fireRocketType = RocketTypes.directLaser;
+    PartsMeta[Parts.laser].canFireNearBlocksOnBreak = true;
 
     app.InitialSpawn();
 

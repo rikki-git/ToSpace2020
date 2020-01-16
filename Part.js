@@ -55,6 +55,7 @@ class Part {
         this.burnDamageTime = this.burnDamageCooldown;
 
         this.lineMaterial = null;
+        this.line = null;
         this.lineGeometry = null;
 
         if (!this.isPreview && !this.isLoot) {
@@ -75,20 +76,9 @@ class Part {
     Fire(speed, angle) {
         let pos = new THREE.Vector3();
         this.tObject.getWorldPosition(pos);
-        if (this.partName == Parts.laser) {
-
-
-            // let material = new THREE.LineBasicMaterial({ color: 0x0000ff });
-            // let geometry = new THREE.Geometry();
-            // geometry.vertices.push(new THREE.Vector3(pos.x, pos.y, 0));
-            // geometry.vertices.push(new THREE.Vector3(pos.x + 100, pos.y + 100, 0))
-            // let line = new THREE.Line(geometry, material);
-            // appGlobal.scene.add(line);
-            // this.lineMaterial = material;
-            // this.lineGeometry = geometry;
-
-
-
+        if (this.partMeta.fireRocketType == RocketTypes.directLaser) {
+            if (this.line == null) {
+            }
         }
         else
             new Rocket(appGlobal.scene, appGlobal.rockets, pos.x, pos.y, angle, speed, this.team, this.partMeta.fireRocketType);
@@ -207,6 +197,21 @@ class Part {
     }
 
     Dispose(parent) {
+        if (this.line != null) {
+            parent.remove(this.line);
+            this.line = null;
+        }
+
+        if (this.lineMaterial != null) {
+            this.lineMaterial.dispose();
+            this.lineMaterial = null;
+        }
+
+        if (this.lineGeometry != null) {
+            this.lineGeometry.dispose();
+            this.lineGeometry = null;
+        }
+
         this.tObject.material.dispose();
         for (let i = 0; i < this.effects.length; i++) {
             let fx = this.effects[i];
