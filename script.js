@@ -396,12 +396,21 @@ class App {
 
 function getShipLocalStorage() {
     let storage = localStorage["ships"];
-    if (storage == null || storage.length < 1)
-        storage = DefaultLocalStorage;
+    if (storage == null)
+        storage = DefaultLocalStorage.Ships;
     else {
         storage = JSON.parse(storage);
-        if (storage == null || storage.length < 1)
-            storage = DefaultLocalStorage;
+        if (storage == null)
+            storage = DefaultLocalStorage.Ships;
+
+        let haveShips = false;
+        for (let i in storage) {
+            haveShips = true;
+            break;
+        }
+
+        if (!haveShips)
+            storage = DefaultLocalStorage.Ships;
     }
     return storage;
 }
