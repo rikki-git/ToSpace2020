@@ -7,7 +7,7 @@ class BotShip {
         this.leaveTime = 0;
         this.leaveDir = 1;
         this.leaveAngleTime = 1;
-        this.attackWait = Math.random() * 5 + 3;
+        this.attackWait = Math.random() * 8 + 3;
         this.requreFire = false;
     }
 
@@ -69,7 +69,7 @@ class BotShip {
 
         if (this.attackTime > this.attackWait) {
             this.attackTime = 0;
-            this.leaveTime = 10;
+            this.leaveTime = 7;
             this.leaveAngleTime = 1;
             this.leaveDir = Math.random() > 0.5 ? -1 : 1;
         }
@@ -109,7 +109,7 @@ class BotShip {
                 this.requreFire = true;
             }
             else if (dist < 1500) {
-                this.attackTime += dt * 0.5;
+                this.attackTime += dt * 0.2;
                 me.mover.dSpeed = 0;
                 this.requreFire = true;
             }

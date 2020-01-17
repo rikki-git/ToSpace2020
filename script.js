@@ -126,6 +126,9 @@ class App {
 
         let player = new Ship(this.scene, this.ships, "team1", "Mini");
         player.controller = new PlayerShip();
+
+        //let b = this.spawnShipBotFromLocalStorage("RocketTest");
+        //b.Rotate(4);
     }
 
     /** @returns {Ship} */
@@ -457,6 +460,7 @@ class App {
         let bot = new Ship(appGlobal.scene, appGlobal.ships, "team2", name);
         bot.controller = new BotShip();
         bot.tObject.position.y = 1000;
+        return bot;
     }
 
     savePlayerShipToLocalStorage() {
@@ -641,10 +645,6 @@ window.onload = function () {
     PartsMeta[Parts.canon].canFireNearBlocksOnBreak = true;
 
     PartsMeta[Parts.laser].AddAllConnections();
-    PartsMeta[Parts.laser].fireRate = 1;
-    PartsMeta[Parts.laser].fireMiniCount = 3;
-    PartsMeta[Parts.laser].fireMiniDelay = 0.1;
-    PartsMeta[Parts.laser].fireRocketType = RocketTypes.directLaser;
     PartsMeta[Parts.laser].canFireNearBlocksOnBreak = true;
 
     app.InitialSpawn();

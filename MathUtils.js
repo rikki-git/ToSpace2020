@@ -14,7 +14,11 @@ class MathUtils {
         return Math.sqrt(((x1 - x2) ** 2) + ((y1 - y2) ** 2));
     }
 
+    static distSqr(x1, y1, x2, y2) {
+        return ((x1 - x2) ** 2) + ((y1 - y2) ** 2);
+    }
+
     static isInCircle(checkX, checkY, circleX, circleY, radius) {
-        return Math.sqrt(((circleX - checkX) ** 2) + ((circleY - checkY) ** 2)) <= radius;
+        return ((circleX - checkX) ** 2) + ((circleY - checkY) ** 2) <= radius * radius;
     }
 }

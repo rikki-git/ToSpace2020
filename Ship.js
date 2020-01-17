@@ -201,7 +201,7 @@ class Ship {
                 updateFireRate = this.controller.requreFire;
             }
 
-            part.Update(dt);
+            part.Update(dt, rareUpdate);
 
             if (part.fireMiniCount == 0 && part.partMeta.fireRate > 0) {
                 if (part.fireTime <= 0) {

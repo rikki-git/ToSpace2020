@@ -1,5 +1,4 @@
 const RocketTypes = {
-    directLaser: "directLaser",
     rocket: "rocket",
     laserBullet: "laserBullet",
 }

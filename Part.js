@@ -76,12 +76,7 @@ class Part {
     Fire(speed, angle) {
         let pos = new THREE.Vector3();
         this.tObject.getWorldPosition(pos);
-        if (this.partMeta.fireRocketType == RocketTypes.directLaser) {
-            if (this.line == null) {
-            }
-        }
-        else
-            new Rocket(appGlobal.scene, appGlobal.rockets, pos.x, pos.y, angle, speed, this.team, this.partMeta.fireRocketType);
+        new Rocket(appGlobal.scene, appGlobal.rockets, pos.x, pos.y, angle, speed, this.team, this.partMeta.fireRocketType);
     }
 
     Burn() {
@@ -96,7 +91,7 @@ class Part {
         this.effects.push(fxSprite);
     }
 
-    Update(dt) {
+    Update(dt, rareUpdate) {
         if (this.isPreview)
             return;
 
@@ -115,6 +110,78 @@ class Part {
 
                 if (this.fireTime <= 0) {
                     this.fireTime = 0;
+                }
+            }
+        }
+
+        if (this.partName == Parts.laser) {
+
+            let target = null;
+            let minDist = 0;
+            let x1 = 0;
+            let y1 = 0;
+            let x2 = 0;
+            let y2 = 0;
+
+            for (let i = 0; i < appGlobal.rockets.length; i++) {
+                let rocket = appGlobal.rockets[i];
+
+                if (rocket.team == this.team)
+                    continue;
+
+                if (rocket.rocketType != RocketTypes.rocket)
+                    continue;
+
+                let tx1 = this.tObject.position.x;
+                let ty1 = this.tObject.position.y + 3.5 * scaleGlobal;
+                let rocketLocal = new THREE.Vector3(rocket.tObject.position.x, rocket.tObject.position.y, 0);
+                this.parent.worldToLocal(rocketLocal);
+                let tx2 = rocketLocal.x;
+                let ty2 = rocketLocal.y;
+
+                let dist = MathUtils.distSqr(tx1, ty1, tx2, ty2);
+
+                if (dist > 1000 * 1000)
+                    continue;
+
+                if (target == null || dist < minDist) {
+                    target = rocket;
+                    minDist = dist;
+                    x1 = tx1;
+                    x2 = tx2;
+                    y1 = ty1;
+                    y2 = ty2;
+                }
+            }
+
+            if (target == null) {
+                if (this.line != null) {
+                    this.line.visible = false;
+                }
+            }
+            else {
+
+                target.timer -= dt * 3;
+
+                if (this.line == null) {
+                    this.lineMaterial = new THREE.LineBasicMaterial({ color: 0xBDFFCA });
+                    this.lineGeometry = new THREE.Geometry();
+
+                    for (let i = -1 * scaleGlobal; i <= 1 * scaleGlobal; i++) {
+                        this.lineGeometry.vertices.push(new THREE.Vector3(x1 + i, y1, 1));
+                        this.lineGeometry.vertices.push(new THREE.Vector3(x2, y2, 1));
+                    }
+
+                    this.line = new THREE.Line(this.lineGeometry, this.lineMaterial);
+                    this.parent.add(this.line);
+                }
+                else {
+                    this.line.visible = true;
+                    for (let i = 1; i < this.lineGeometry.vertices.length; i += 2) {
+                        this.lineGeometry.vertices[i].x = x2;
+                        this.lineGeometry.vertices[i].y = y2;
+                        this.lineGeometry.verticesNeedUpdate = true;
+                    }
                 }
             }
         }
@@ -137,6 +204,8 @@ class Part {
                 let fx = this.effects[i];
                 fx.visible = false;
             }
+            if (this.line != null)
+                this.line.visible = false;
             this.UpdateMaterial();
         }
     }
@@ -198,7 +267,7 @@ class Part {
 
     Dispose(parent) {
         if (this.line != null) {
-            parent.remove(this.line);
+            this.parent.remove(this.line);
             this.line = null;
         }
 
