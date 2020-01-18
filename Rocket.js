@@ -4,32 +4,44 @@ const RocketTypes = {
 }
 
 class Rocket {
+    /**
+     * 
+     * @param {THREE.Scene} scene 
+     * @param {Rocket[]} storage 
+     * @param {number} x 
+     * @param {number} y
+     * @param {number} angle
+     * @param {THREE.Vector2} initialSpeed 
+     * @param {string} team 
+     * @param {string} rocketType 
+     */
     constructor(scene, storage, x, y, angle, initialSpeed, team, rocketType) {
+        let initialSpeedLen = initialSpeed.length();
+
         this.rocketType = rocketType;
         this.tObject = new THREE.Sprite(AppTextures.materials[this.rocketType].clone());
         this.tObject.position.set(x, y, 0);
         this.tObject.scale.set(scaledTileGlobal, scaledTileGlobal, 1.0);
         this.mover = new ShipMover();
         this.mover.dSpeed = 1;
-        this.mover.maxSpeed = initialSpeed + 1200;
+        this.mover.maxSpeed = initialSpeedLen + 30;
         this.mover.acceleration = 10000;
-        this.mover.speed = initialSpeed;
+        this.mover.speedVector = initialSpeed.clone();
 
         this.maxGapAngle = 0.15;
         this.gapAngle = (Math.random() - 0.5) * this.maxGapAngle;
         this.gapAngleSpeed = 0.02;
         this.timer = 2 + Math.random() / 4;
         this.damageRadius = 24;
-        this.damage = 80;
+        this.damage = 70;
 
         if (this.rocketType == RocketTypes.laserBullet) {
             this.gapAngleSpeed = 0;
-            this.mover.maxSpeed = initialSpeed + 2000;
             this.timer = 1;
             this.damageRadius = 10;
-            this.damage = 40;
+            this.damage = 15;
+            this.mover.acceleration = 20000;
         }
-
 
         this.initialTimer = this.timer;
         this.initialScaleY = this.tObject.scale.x;

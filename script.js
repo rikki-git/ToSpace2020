@@ -617,13 +617,13 @@ window.onload = function () {
     PartsMeta[Parts.bridgeT].connections.push(new Connection(1, 0));
 
     PartsMeta[Parts.engine].connections.push(new Connection(0, 1));
-    PartsMeta[Parts.engine].acceleration = 700;
+    PartsMeta[Parts.engine].acceleration = 20;
     PartsMeta[Parts.engine].effects.push(new PartEffect(0, -scaledTileGlobal, "engineFire"));
     PartsMeta[Parts.engine].blockConnections.push(new Connection(0, -1));
     PartsMeta[Parts.engine].canFireNearBlocksOnBreak = true;
 
     PartsMeta[Parts.engine_e].connections.push(new Connection(0, 1));
-    PartsMeta[Parts.engine_e].acceleration = 700;
+    PartsMeta[Parts.engine_e].acceleration = 20;
     PartsMeta[Parts.engine_e].effects.push(new PartEffect(0, -scaledTileGlobal, "engineFire"));
     PartsMeta[Parts.engine_e].blockConnections.push(new Connection(0, -1));
     PartsMeta[Parts.engine_e].canFireNearBlocksOnBreak = true;

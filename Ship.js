@@ -58,7 +58,7 @@ class Ship {
 
     UpdateShipStats() {
         let mass = 0;
-        let maxSpeed = 350;
+        let maxSpeed = 3;
         let acceleration = 0;
         let rotateSpeed = 0;
         let hasLivingParts = false;
@@ -76,7 +76,7 @@ class Ship {
             acceleration += meta.acceleration;
 
             if (meta.acceleration > 0)
-                maxSpeed = 600;
+                maxSpeed = 10;
 
             rotateSpeed += meta.rotateSpeed;
         }
@@ -157,11 +157,15 @@ class Ship {
     Update(dt, rareUpdate) {
         this.mover.Move(this, dt);
 
+        // if (this.mover.speedVector.x > 5) {
+        //     this.ApplyDamage(this.tObject.position.x, this.tObject.position.y, 1000, 1000);
+        // }
+
         if (this.isBroken) {
             for (let i = 0; i < this.parts.length; i++) {
                 let part = this.parts[i];
-                let mx = -this.mover.speed * 0.2 * Math.sin(part.tObject.material.rotation) * dt;
-                let my = this.mover.speed * 0.2 * Math.cos(part.tObject.material.rotation) * dt;
+                let mx = -this.mover.speedVector.x * Math.sin(part.tObject.material.rotation) * 50 * dt;
+                let my = this.mover.speedVector.y * Math.cos(part.tObject.material.rotation) * 50 * dt;
                 part.tObject.position.x += mx;
                 part.tObject.position.y += my;
 
@@ -195,7 +199,7 @@ class Ship {
                 }
             }
 
-            let updateFireRate = true;
+            let updateFireRate = false;
 
             if (this.controller != null) {
                 updateFireRate = this.controller.requreFire;
@@ -205,7 +209,7 @@ class Ship {
 
             if (part.fireMiniCount == 0 && part.partMeta.fireRate > 0) {
                 if (part.fireTime <= 0) {
-                    part.fireTime = part.partMeta.fireRate;
+                    part.fireTime = part.partMeta.fireRate + (Math.random() - 0.5) * 0.2;
                     part.fireMiniCount = part.partMeta.fireMiniCount;
                     part.fireMiniTime = part.partMeta.fireMiniDelay;
                 }
@@ -216,7 +220,7 @@ class Ship {
                     if (part.fireMiniTime <= 0) {
                         part.fireMiniCount--;
                         part.fireMiniTime = part.partMeta.fireMiniDelay;
-                        part.Fire(this.mover.speed, this.tObject.rotation.z);
+                        part.Fire(this.mover.speedVector.clone(), this.tObject.rotation.z);
                     }
                 }
             }

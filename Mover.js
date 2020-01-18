@@ -1,19 +1,29 @@
 class ShipMover {
     constructor() {
-        this.speed = 0;
+        this.speedVector = new THREE.Vector2();
+
         this.acceleration = 300;
-        this.minAcceleration = 35;
+        this.minAcceleration = 10;
+        this.minSlowdown = 0.01;
         this.rotateSpeed = 1.5;
         this.minRotateSpeed = 0.5;
         this.maxRotateSpeed = 2;
         this.dSpeed = 0;
         this.deltaAngle = 0;
         this.maxSpeed = 1000;
-        this.slowdown = 300;
         this.mass = 1;
     }
 
     Move(target, dt) {
+
+        if (target.parts != null) {
+            for (let i = 0; i < target.parts.length; i++) {
+                /** @type {Part} */
+                let part = target.parts[i];
+                part.moving = this.dSpeed > 0;
+                part.UpdateMaterial();
+            }
+        }
 
         let clampRotate = this.rotateSpeed / this.mass;
         if (clampRotate > this.maxRotateSpeed)
@@ -27,32 +37,27 @@ class ShipMover {
         }
 
         if (this.dSpeed !== 0) {
-            let acc = this.acceleration / this.mass;
-            if (acc < this.minAcceleration)
-                acc = this.minAcceleration;
-            this.speed += this.dSpeed * dt * acc;
+            let delta = this.dSpeed * dt * this.acceleration / this.mass;
+            if (delta < this.minAcceleration)
+                delta = this.minAcceleration;
+
+            this.speedVector.x += -delta * Math.sin(target.tObject.rotation.z) * dt;
+            this.speedVector.y += delta * Math.cos(target.tObject.rotation.z) * dt;
         }
         else {
-            this.speed += -1 * dt * this.slowdown / this.mass;
+            let delta = dt * (this.acceleration * 0.4) / this.mass;
+            if (delta < this.minSlowdown)
+                delta = this.minSlowdown;
+
+            let l = this.speedVector.length() - delta;
+            if (l < 0)
+                l = 0;
+            this.speedVector.setLength(l);
         }
 
-        if (this.speed > this.maxSpeed)
-            this.speed = this.maxSpeed;
-        if (this.speed < 0)
-            this.speed = 0;
+        this.speedVector.clampLength(0, this.maxSpeed);
 
-        if (target.parts != null) {
-            for (let i = 0; i < target.parts.length; i++) {
-                /** @type {Part} */
-                let part = target.parts[i];
-                part.moving = this.dSpeed > 0;
-                part.UpdateMaterial();
-            }
-        }
-
-        let mx = -this.speed * Math.sin(target.tObject.rotation.z) * dt;
-        let my = this.speed * Math.cos(target.tObject.rotation.z) * dt;
-        target.tObject.position.x += mx;
-        target.tObject.position.y += my;
+        target.tObject.position.x += this.speedVector.x;
+        target.tObject.position.y += this.speedVector.y;
     }
 }
