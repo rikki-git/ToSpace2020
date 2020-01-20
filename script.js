@@ -60,6 +60,8 @@ class App {
             PartsMeta[i] = meta;
         }
 
+        CreateMissions();
+
         this.rareUpdateCounter = 0;
         this.rareUpdateInterval = 0.06;
 
@@ -81,6 +83,7 @@ class App {
         this.renderer.autoClear = false; // To allow render overlay on top of sprited sphere
 
         this.groupLoot = new THREE.Group();
+        this.scene.add(this.groupLoot);
         this.clock = new THREE.Clock();
 
         this.raycaster = new THREE.Raycaster();
@@ -101,54 +104,241 @@ class App {
 
         /** @type {TextureAnimator[]} */
         this.animators = [];
+
+        /** @type {SimpleSprite} */
+        this.target = null;
     }
 
     InitialSpawn() {
-        let partsArr = [];
-        for (var i in Parts) {
-            partsArr.push(i);
-        }
-
-        let row = 0;
-        let column = 0;
-
-        for (let i = 0; i < partsArr.length; i++) {
-
-            column++;
-            if (column > 8) {
-                column = 1;
-                row++;
-            }
-
-            let x = column * 100;
-            let y = -row * 100 + 200;
-            let partName = Parts[partsArr[i]];
-            new Part(partName, this.groupLoot, x, y, 0, 0, false, true, NoTeam);
-        }
-
-        this.scene.add(this.groupLoot);
-
-        let player = new Ship(this.scene, this.ships, "team1", "Mini");
-        player.controller = new PlayerShip();
-
-        //let b = this.spawnShipBotFromLocalStorage("RocketTest");
-        //b.Rotate(4);
-
         this.bg = new THREE.Sprite(AppTextures.materials["back"]);
-        this.bg.scale.set(512 * 3, 512 * 3, 1.0);
+        this.bg.scale.set(512 * 6, 512 * 6, 1.0);
         this.bg.position.set(0, 0, 0);
 
         this.bg2 = new THREE.Sprite(AppTextures.materials["bg2"]);
-        this.bg2.scale.set(512 * 4, 512 * 4, 1.0);
+        this.bg2.scale.set(512 * 8, 512 * 8, 1.0);
         this.bg2.position.set(0, 0, 0);
 
         this.bg3 = new THREE.Sprite(AppTextures.materials["bg3"]);
-        this.bg3.scale.set(512 * 4, 512 * 4, 1.0);
+        this.bg3.scale.set(512 * 8, 512 * 8, 1.0);
         this.bg3.position.set(0, 0, 0);
 
         this.sceneBg.add(this.bg);
         this.sceneBg.add(this.bg2);
         this.sceneBg.add(this.bg3);
+
+        this.sidorovichText = document.getElementById("sidorovichText");
+        this.sidorovichContainer = document.getElementById("sidorovichContainer");
+
+        this.currentTask = -1;
+        this.currentReplic = -1;
+        this.currentMission = '';
+        this.replicTime = -1;
+        this.startMission("Tutorial");
+    }
+
+    clean() {
+        this.currentTask = -1;
+        this.currentMission = '';
+        this.currentReplic = -1;
+        this.replicTime = -1;
+        this.sidorovichContainer.style.display = "none";
+        this.sidorovichText.innerHTML = "";
+
+        for (let i = this.ships.length - 1; i >= 0; i--) {
+            let c = this.ships[i];
+            this.scene.remove(c.tObject);
+            this.ships.splice(i, 1);
+            c.Dispose();
+        }
+
+        for (let i = this.rockets.length - 1; i >= 0; i--) {
+            let c = this.rockets[i];
+            this.applyDamage(c.tObject.position.x, c.tObject.position.y, c.damageRadius, c.team, c.damage);
+            this.scene.remove(c.tObject);
+            this.rockets.splice(i, 1);
+            c.Dispose();
+        }
+
+        for (let i = this.effects.length - 1; i >= 0; i--) {
+            let c = this.effects[i];
+            this.scene.remove(c.tObject);
+            this.effects.splice(i, 1);
+            c.Dispose();
+        }
+
+        for (let i = this.groupLoot.children.length - 1; i >= 0; i--) {
+            let c = this.groupLoot.children[i];
+            let part = this.getPartFromTObject(c);
+            part.Dispose(this.groupLoot);
+            this.groupLoot.remove(c);
+        }
+    }
+
+    /**
+    * @param {string} mission
+    */
+    startMission(mission) {
+        this.clean();
+        this.currentMission = mission;
+
+        if (mission == "Editor") {
+            let partsArr = [];
+            for (var i in Parts) {
+                partsArr.push(i);
+            }
+
+            let row = 0;
+            let column = 0;
+
+            for (let i = 0; i < partsArr.length; i++) {
+
+                column++;
+                if (column > 8) {
+                    column = 1;
+                    row++;
+                }
+
+                let x = column * 100;
+                let y = -row * 100 + 200;
+                let partName = Parts[partsArr[i]];
+                new Part(partName, this.groupLoot, x, y, 0, 0, false, true, NoTeam);
+            }
+
+            let player = new Ship(this.scene, this.ships, "team1", "Mini");
+            player.controller = new PlayerShip();
+        }
+        else {
+            let player = new Ship(this.scene, this.ships, "team1", "Cube");
+            player.controller = new PlayerShip();
+            let mission = Missions[this.currentMission];
+            let spacing = 100;
+            let offset = -mission.parts.length * spacing / 2 + spacing / 2;
+
+            for (let i = 0; i < mission.parts.length; i++) {
+                new Part(mission.parts[i], this.groupLoot, offset + i * spacing, 200, 0, 0, false, true, NoTeam);
+            }
+        }
+
+        this.startNextTask();
+    }
+
+    startNextTask() {
+        if (this.currentTask == 0) {
+            for (let i = this.groupLoot.children.length - 1; i >= 0; i--) {
+                let c = this.groupLoot.children[i];
+                let part = this.getPartFromTObject(c);
+                part.Dispose(this.groupLoot);
+                this.groupLoot.remove(c);
+            }
+        }
+
+        let nextTask = this.currentTask + 1;
+        let mission = Missions[this.currentMission];
+        this.currentReplic = -1;
+
+        if (this.target != null) {
+            this.scene.remove(this.target.tObject);
+            this.target.Dispose();
+            this.target = null;
+        }
+
+        if (mission.tasks.length <= nextTask)
+            return;
+
+        this.currentTask = nextTask;
+        let task = mission.tasks[this.currentTask];
+
+        if (task.type == TaskTypes.GoTo) {
+            this.target = new SimpleSprite(this.scene, this.effects, task.x, task.y, "target");
+            let player = this.getPlayer();
+            if (player != null)
+                player.ArrowTo(task.x, task.y, "arrow");
+        }
+        else if (task.type == TaskTypes.Kill) {
+            for (let i = 0; i < task.shipsCount; i++) {
+                for (let j = 0; j < task.ships.length; j++) {
+                    let name = task.ships[j];
+                    let bot = new Ship(this.scene, this.ships, "team2", name);
+                    bot.controller = new BotShip();
+                    bot.tObject.position.x = task.x + i * 200;
+                    bot.tObject.position.y = task.y + j * 200;
+                }
+            }
+        }
+
+        this.startNextReplic();
+    }
+
+    checkTaskComplete() {
+        let mission = Missions[this.currentMission];
+        if (mission.tasks.length <= this.currentTask || this.currentTask < 0)
+            return;
+
+        let task = mission.tasks[this.currentTask];
+        if (task.type == TaskTypes.GoTo) {
+            let player = this.getPlayer();
+            if (player != null && !player.isBroken) {
+                let dist = MathUtils.distSqr(task.x, task.y, player.tObject.position.x, player.tObject.position.y);
+                if (dist < 128 ** 2) {
+                    player.ArrowDispose();
+                    this.startNextTask();
+                }
+            }
+        }
+        else if (task.type == TaskTypes.Kill) {
+            let player = this.getPlayer();
+            if (player != null) {
+                let minDist = -1;
+                let x = 0;
+                let y = 0;
+
+                for (let i = 0; i < this.ships.length; i++) {
+                    let c = this.ships[i];
+                    if (c.team == player.team || c.isBroken)
+                        continue;
+
+                    let dist = MathUtils.distSqr(c.tObject.position.x, c.tObject.position.y, player.tObject.position.x, player.tObject.position.y);
+
+                    if (minDist == -1 || dist < minDist) {
+                        minDist = dist;
+                        x = c.tObject.position.x;
+                        y = c.tObject.position.y;
+                    }
+                }
+
+                if (minDist == -1) {
+                    player.ArrowDispose();
+                    this.startNextTask();
+                }
+                else {
+                    player.ArrowTo(x, y, "arrowRed");
+                }
+            }
+        }
+    }
+
+    startNextReplic() {
+        this.sidorovichText.innerHTML = "";
+        this.sidorovichContainer.style.display = "none";
+        this.replicTime = -1;
+
+        let mission = Missions[this.currentMission];
+
+        if (mission.tasks.length <= this.currentTask || this.currentTask < 0)
+            return;
+
+        let task = mission.tasks[this.currentTask];
+
+        let nextReplic = this.currentReplic + 1;
+        if (task.replics.length <= nextReplic)
+            return;
+
+        this.currentReplic = nextReplic;
+        let replic = task.replics[this.currentReplic];
+        let txt = Replics.Get(replic);
+        this.replicTime = 7;
+        this.sidorovichText.innerHTML = txt;
+        this.sidorovichContainer.style.display = "block";
     }
 
     /** @returns {Ship} */
@@ -162,13 +352,6 @@ class App {
         return null;
     }
 
-    createHUDSprites(texture) {
-        this.updateHUDSprites();
-    }
-
-    updateHUDSprites() {
-    }
-
     onWindowResize() {
         let width = window.innerWidth;
         let height = window.innerHeight;
@@ -179,7 +362,6 @@ class App {
         this.camera.bottom = - height / 2;
         this.camera.updateProjectionMatrix();
 
-        this.updateHUDSprites();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
@@ -217,6 +399,12 @@ class App {
 
     update() {
         let dt = this.clock.getDelta();
+
+        if (this.replicTime > 0) {
+            this.replicTime -= dt;
+            if (this.replicTime <= 0)
+                this.startNextReplic();
+        }
 
         let rareUpdate = false;
 
@@ -275,6 +463,9 @@ class App {
                 this.bg3.material.map.offset.y = c.tObject.position.y / 1300;
                 this.bg2.material.map.offset.x = c.tObject.position.x / 1000;
                 this.bg2.material.map.offset.y = c.tObject.position.y / 1000;
+
+                if (rareUpdate)
+                    this.checkTaskComplete();
             }
 
             if (c.waitDestroy) {
@@ -396,8 +587,6 @@ class App {
         if (this.undermouseLoot != null) {
             let part = this.getPartFromTObject(this.undermouseLoot);
             const partName = part.partName;
-            //this.groupLoot.remove(this.undermouseLoot);
-            //part.Dispose(this.groupLoot);
             this.undermouseLoot = null;
 
             if (player != null)
@@ -553,10 +742,6 @@ window.onload = function () {
         e.preventDefault(); app.handleClick(e); return false;
     };
 
-    AppTextures.callbacks.sprite0 = function (t) {
-        app.createHUDSprites(t);
-    }
-
     AppTextures.callbacks.engineMove = function (t) {
         app.animators.push(new TextureAnimator(t, 8, 1, 5, 100));
     }
@@ -578,17 +763,17 @@ window.onload = function () {
     }
 
     AppTextures.callbacks.back = function (t) {
-        t.repeat.set(4, 4);
+        t.repeat.set(8, 8);
         t.wrapS = t.wrapT = THREE.RepeatWrapping;
     }
 
     AppTextures.callbacks.bg2 = function (t) {
-        t.repeat.set(4, 4);
+        t.repeat.set(8, 8);
         t.wrapS = t.wrapT = THREE.RepeatWrapping;
     }
 
     AppTextures.callbacks.bg3 = function (t) {
-        t.repeat.set(4, 4);
+        t.repeat.set(8, 8);
         t.wrapS = t.wrapT = THREE.RepeatWrapping;
     }
 

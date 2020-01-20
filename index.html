@@ -19,7 +19,9 @@
     <script src="Mover.js"></script>
     <script src="PlayerShip.js"></script>
     <script src="BotShip.js"></script>
+    <script src="SimpleSprite.js"></script>
     <script src="script.js"></script>
+    <script src="Missions.js"></script>
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link type="text/css" rel="stylesheet" href="main.css">
 </head>
@@ -64,13 +66,13 @@
 
     </div>
 
-    <div class="container" style="position: absolute; width: 40%; left: 30%; padding-bottom: 5%;
+    <div id="sidorovichContainer" class="container" style="position: absolute; width: 40%; left: 30%; padding-bottom: 5%;
   color: white; bottom: 0; overflow-y: auto; min-width: 550px; display: none;">
         <img src="dialog_m.png" style="width: 100%; height: auto; image-rendering: pixelated;
             image-rendering: -moz-crisp-edges;
             image-rendering: crisp-edges;">
         </img>
-        <p
+        <p id="sidorovichText"
             style="position: absolute; top: 0; left: 28%; right: 3%; font-size: 140%; font-family:'Lucida Console', Monaco, monospace;">
             АДМИРАЛ: <br> Нарушители уже на подходе. Необходимо
             срочно их перехватить, пока они не высадили десант.</p>

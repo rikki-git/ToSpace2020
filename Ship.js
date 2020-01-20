@@ -16,12 +16,38 @@ class Ship {
             this.Load(shipToLoad);
 
         this.controller = null;
+
+        this.arrow = null;
+        this.arrowName = null;
+        this.arrowToX = 0;
+        this.arrowToY = 0;
+
         this.Rotate(0);
         scene.add(this.tObject);
         ships.push(this);
         this.isBroken = false;
         this.waitDestroy = false;
         this.UpdateShipStats();
+    }
+
+    ArrowTo(x, y, sprite) {
+        if (this.arrow == null || this.arrowName != sprite) {
+            this.ArrowDispose();
+            this.arrow = new SimpleSprite(this.tObject, null, 0, 0, sprite);
+        }
+
+        this.arrowName = sprite;
+        this.arrowToX = x;
+        this.arrowToY = y;
+    }
+
+    ArrowDispose() {
+        if (this.arrow != null) {
+            this.tObject.remove(this.arrow.tObject);
+            this.arrow.Dispose();
+            this.arrow = null;
+            this.arrowName = null;
+        }
     }
 
     Save(name) {
@@ -161,6 +187,20 @@ class Ship {
         //     this.ApplyDamage(this.tObject.position.x, this.tObject.position.y, 1000, 1000);
         // }
 
+        if (this.arrow != null) {
+            let dist = MathUtils.distSqr(this.arrowToX, this.arrowToY, this.tObject.position.x, this.tObject.position.y);
+            if (dist < 500 ** 2)
+                this.arrow.tObject.visible = false;
+            else {
+                let targetAngle = Math.atan2(this.arrowToY - this.tObject.position.y, this.arrowToX - this.tObject.position.x);
+                targetAngle -= Math.PI * 0.5 - this.tObject.rotation.z + this.tObject.rotation.z;
+                this.arrow.tObject.position.x = -Math.sin(targetAngle - this.tObject.rotation.z) * 300;
+                this.arrow.tObject.position.y = Math.cos(targetAngle - this.tObject.rotation.z) * 300;
+                this.arrow.tObject.material.rotation = targetAngle;
+                this.arrow.tObject.visible = true;
+            }
+        }
+
         if (this.isBroken) {
             for (let i = 0; i < this.parts.length; i++) {
                 let part = this.parts[i];
@@ -291,6 +331,7 @@ class Ship {
     }
 
     Dispose() {
+        this.ArrowDispose();
         this.DisposePlaceables();
         let disposeParts = [];
         for (let i = this.parts.length - 1; i >= 0; i--) {
