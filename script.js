@@ -495,12 +495,6 @@ class App {
         let storage = this.getShipLocalStorage();
 
         for (let i in storage) {
-
-            // <button style="float: left; margin-left: 5px;"> Spawn bot </button>
-            // <button style="float: left; margin-left: 10px;"> Spawn player </button>
-            // <button style="float: left; margin-left: 10px;"> Spawn </button>
-            // <button style="float: left; margin-left: 10px;"> Delete </button>
-
             /** @type {any} */
             let p = prefab.cloneNode(true);
             p.style.display = "block";
