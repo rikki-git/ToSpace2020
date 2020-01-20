@@ -36,8 +36,8 @@ class ShipMover {
             target.Rotate(newAngle);
         }
 
-        if (this.dSpeed !== 0) {
-            let delta = this.dSpeed * dt * this.acceleration / this.mass;
+        if (this.dSpeed > 0) {
+            let delta = dt * this.acceleration / this.mass;
             if (delta < this.minAcceleration)
                 delta = this.minAcceleration;
 
