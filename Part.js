@@ -43,7 +43,9 @@ class Part {
         this.tileX = tileX;
         this.tileY = tileY;
 
-        this.fireTime = this.partMeta.fireRate * Math.random();
+        this.fireTime = this.partMeta.fireRate;
+        this.UpdateReadyToFire();
+
         this.fireMiniTime = 0;
         this.fireMiniCount = 0;
 
@@ -91,6 +93,22 @@ class Part {
         this.effects.push(fxSprite);
     }
 
+    UpdateReadyToFire() {
+        if (this.partName != Parts.canon) {
+            return;
+        }
+
+        if (this.isPreview || this.isBroken || this.isLoot)
+            return;
+
+        let open = this.fireMiniCount > 0 && this.fireMiniTime <= 0.1;
+
+        if (open)
+            this.SetMaterial(this.defaultMaterialName);
+        else
+            this.SetMaterial("canonClosed");
+    }
+
     Update(dt, rareUpdate) {
         if (this.isPreview)
             return;
@@ -113,6 +131,8 @@ class Part {
                 }
             }
         }
+
+        this.UpdateReadyToFire();
 
         if (this.partName == Parts.laser) {
 

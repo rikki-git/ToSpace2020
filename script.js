@@ -463,6 +463,19 @@ class App {
         return bot;
     }
 
+    spawnShipFromLocalStorage(name) {
+        let p = appGlobal.getPlayer();
+        if (p == null)
+            return;
+
+        let bot = new Ship(appGlobal.scene, appGlobal.ships, "team3", name);
+        bot.tObject.position.x = p.tObject.position.x;
+        bot.tObject.position.y = p.tObject.position.y;
+        bot.Rotate(p.tObject.rotation.z);
+
+        return bot;
+    }
+
     savePlayerShipToLocalStorage() {
         /** @type {any} */
         let t = document.getElementById("saveShipInput")
@@ -482,13 +495,20 @@ class App {
         let storage = this.getShipLocalStorage();
 
         for (let i in storage) {
+
+            // <button style="float: left; margin-left: 5px;"> Spawn bot </button>
+            // <button style="float: left; margin-left: 10px;"> Spawn player </button>
+            // <button style="float: left; margin-left: 10px;"> Spawn </button>
+            // <button style="float: left; margin-left: 10px;"> Delete </button>
+
             /** @type {any} */
             let p = prefab.cloneNode(true);
             p.style.display = "block";
-            p.children[3].innerHTML = i;
-            p.children[2].onclick = function (e) { appGlobal.deleteShipFromLocalStorage(e.target.parentNode.children[3].innerHTML) }
-            p.children[1].onclick = function (e) { appGlobal.spawnShipPlayerFromLocalStorage(e.target.parentNode.children[3].innerHTML) }
-            p.children[0].onclick = function (e) { appGlobal.spawnShipBotFromLocalStorage(e.target.parentNode.children[3].innerHTML) }
+            p.children[4].innerHTML = i;
+            p.children[0].onclick = function (e) { appGlobal.spawnShipBotFromLocalStorage(e.target.parentNode.children[4].innerHTML) }
+            p.children[1].onclick = function (e) { appGlobal.spawnShipPlayerFromLocalStorage(e.target.parentNode.children[4].innerHTML) }
+            p.children[2].onclick = function (e) { appGlobal.spawnShipFromLocalStorage(e.target.parentNode.children[4].innerHTML) }
+            p.children[3].onclick = function (e) { appGlobal.deleteShipFromLocalStorage(e.target.parentNode.children[4].innerHTML) }
             container.appendChild(p);
         }
     }

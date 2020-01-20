@@ -95,9 +95,11 @@ class Ship {
 
             for (let i = 0; i < this.parts.length; i++) {
                 let part = this.parts[i];
-                part.tObject.position.x += (Math.random() - 0.5) * 15;
-                part.tObject.position.y += (Math.random() - 0.5) * 15;
-                part.tObject.material.rotation += (Math.random() - 0.5) * 10;
+                if (this.mover.speed > 0) {
+                    part.tObject.position.x += (Math.random() - 0.5) * 15;
+                    part.tObject.position.y += (Math.random() - 0.5) * 15;
+                }
+                part.tObject.material.rotation += (Math.random() - 0.5) * 5;
 
                 if (Math.random() < 0.3 && explosions > 0) {
                     explosions--;
