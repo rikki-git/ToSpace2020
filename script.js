@@ -65,11 +65,15 @@ class App {
 
         let width = window.innerWidth;
         let height = window.innerHeight;
-        this.camera = new THREE.OrthographicCamera(-width / 2, width / 2, height / 2, -height / 2, 0, 10);
+
+        this.cameraBg = new THREE.OrthographicCamera(-width / 2, width / 2, height / 2, -height / 2, 0, 11);
+        this.cameraBg.position.z = 1;
+
+        this.camera = new THREE.OrthographicCamera(-width / 2, width / 2, height / 2, -height / 2, 0, 11);
         this.camera.position.z = 10;
 
         this.scene = new THREE.Scene();
-        this.sceneOrtho = new THREE.Scene();
+        this.sceneBg = new THREE.Scene();
 
         this.renderer = new THREE.WebGLRenderer();
         this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -129,6 +133,22 @@ class App {
 
         //let b = this.spawnShipBotFromLocalStorage("RocketTest");
         //b.Rotate(4);
+
+        this.bg = new THREE.Sprite(AppTextures.materials["back"]);
+        this.bg.scale.set(512 * 3, 512 * 3, 1.0);
+        this.bg.position.set(0, 0, 0);
+
+        this.bg2 = new THREE.Sprite(AppTextures.materials["bg2"]);
+        this.bg2.scale.set(512 * 4, 512 * 4, 1.0);
+        this.bg2.position.set(0, 0, 0);
+
+        this.bg3 = new THREE.Sprite(AppTextures.materials["bg3"]);
+        this.bg3.scale.set(512 * 4, 512 * 4, 1.0);
+        this.bg3.position.set(0, 0, 0);
+
+        this.sceneBg.add(this.bg);
+        this.sceneBg.add(this.bg2);
+        this.sceneBg.add(this.bg3);
     }
 
     /** @returns {Ship} */
@@ -190,8 +210,8 @@ class App {
                 material.color.set('#fff');
         }
 
-        this.renderer.setClearColor(0x160428, 1);
-        this.renderer.clear(true);
+        this.renderer.render(this.sceneBg, this.cameraBg);
+        this.renderer.clearDepth();
         this.renderer.render(this.scene, this.camera);
     }
 
@@ -249,6 +269,12 @@ class App {
             if (c.controller != null && c.controller.isPlayer === true) {
                 this.camera.position.x = c.tObject.position.x;
                 this.camera.position.y = c.tObject.position.y;
+                this.bg.material.map.offset.x = c.tObject.position.x / 1400;
+                this.bg.material.map.offset.y = c.tObject.position.y / 1400;
+                this.bg3.material.map.offset.x = c.tObject.position.x / 1300;
+                this.bg3.material.map.offset.y = c.tObject.position.y / 1300;
+                this.bg2.material.map.offset.x = c.tObject.position.x / 1000;
+                this.bg2.material.map.offset.y = c.tObject.position.y / 1000;
             }
 
             if (c.waitDestroy) {
@@ -549,6 +575,21 @@ window.onload = function () {
 
     AppTextures.callbacks.fire = function (t) {
         app.animators.push(new TextureAnimator(t, 4, 1, 4, 100));
+    }
+
+    AppTextures.callbacks.back = function (t) {
+        t.repeat.set(4, 4);
+        t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    }
+
+    AppTextures.callbacks.bg2 = function (t) {
+        t.repeat.set(4, 4);
+        t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    }
+
+    AppTextures.callbacks.bg3 = function (t) {
+        t.repeat.set(4, 4);
+        t.wrapS = t.wrapT = THREE.RepeatWrapping;
     }
 
     AppTextures.Load();
