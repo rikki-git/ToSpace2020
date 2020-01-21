@@ -249,7 +249,7 @@ class App {
         let task = mission.tasks[this.currentTask];
 
         if (task.type == TaskTypes.GoTo) {
-            this.target = new SimpleSprite(this.scene, this.effects, task.x, task.y, "target");
+            this.target = new SimpleSprite(this.scene, this.effects, task.x, task.y, "target", 128);
             let player = this.getPlayer();
             if (player != null)
                 player.ArrowTo(task.x, task.y, "arrow");

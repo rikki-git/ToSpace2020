@@ -1,7 +1,6 @@
 class SimpleSprite {
-    constructor(scene, storage, x, y, texture) {
+    constructor(scene, storage, x, y, texture, imageHeight) {
         this.tObject = new THREE.Sprite(AppTextures.materials[texture].clone());
-        let imageHeight = this.tObject.material.map.image.height;
         this.tObject.position.set(x, y, -1);
         this.tObject.scale.set(scaleGlobal * imageHeight, scaleGlobal * imageHeight, 1.0);
         if (storage != null)

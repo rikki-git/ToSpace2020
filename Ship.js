@@ -33,7 +33,7 @@ class Ship {
     ArrowTo(x, y, sprite) {
         if (this.arrow == null || this.arrowName != sprite) {
             this.ArrowDispose();
-            this.arrow = new SimpleSprite(this.tObject, null, 0, 0, sprite);
+            this.arrow = new SimpleSprite(this.tObject, null, 0, 0, sprite, 32);
         }
 
         this.arrowName = sprite;
