@@ -5,22 +5,6 @@ const TaskTypes = {
     Complete: "Complete"
 }
 
-const Replics = {
-    Ru: {
-        TutorialStart1: "Приветствую, командир! Добро пожаловать в первую (и единственную) космобригаду планеты М",
-        TutorialStart2: "Наш флот никогда не славился мощью, но всегда делал упор на профессионализм, поэтому займёмся подготовкой",
-        TutorialStart3: "Твоя задача: подготовить корабль и достигнуть заданных точек",
-        TutorialShoot1: "Отлично! Вижу курс манёвров ты усвоил как надо",
-        TutorialShoot2: "Теперь посмотрим как ты стреляешь. У нас тут снова дроны нарушители. Вот на них и отработай стрельбу",
-        TutorialComplete1: "Обстановка в галактике сейчас непростая, поэтому такой талантливый командир как ты нам сейчас очень пригодится.",
-        TutorialComplete2: "А пока что отбой!"
-    },
-
-    Get: function (key) {
-        return this.Ru[key]; //TODO
-    }
-}
-
 class MissionTask {
     /**
      * @param {string} type
@@ -74,20 +58,22 @@ class Mission {
     * @param {MissionTask[]} tasks
     * @param {number} money
     * @param {any[]} parts
+    * @param {string} nextMission
     */
-    constructor(tasks, money, parts) {
+    constructor(tasks, money, parts, nextMission) {
         this.tasks = tasks;
         this.parts = parts;
         this.money = money;
+        this.nextMission = nextMission;
     }
 }
 
 /** @type {Object.<string, Mission>} */
-let Missions = {}
+let Missions = null;
 
 function CreateMissions() {
     Missions = {
-        Editor: new Mission([], 0, []),
+        Editor: new Mission([], 99999, [], "Editor"),
         Tutorial: new Mission(
             [
                 MissionTask.GoTo(1000, 1000, ["TutorialStart1", "TutorialStart2", "TutorialStart3"]),
@@ -96,9 +82,20 @@ function CreateMissions() {
                 MissionTask.Kill(4000, 3000, ["TutorialShoot2"], ["Drone"], 2),
                 MissionTask.Complete(["TutorialComplete1", "TutorialComplete2"])
             ],
-            100,
+            200,
             [
                 Parts.block, Parts.engine, Parts.gyro_00, Parts.turret_02
-            ]),
+            ],
+            "Mission1"),
+        Mission1: new Mission(
+            [
+                MissionTask.GoTo(0, 1000, ["Mission1_1", "Mission1_2", "Mission1_3"]),
+                MissionTask.Kill(0, 3000, [], ["NB-1"], 2),
+                MissionTask.Kill(0, 6000, [], ["NB-2"], 3),
+                MissionTask.Complete(["Mission1_4", "Mission1_5"])
+            ],
+            500,
+            [Parts.block, Parts.engine, Parts.gyro_00, Parts.turret_02],
+            "Editor")
     }
 }

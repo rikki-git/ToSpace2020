@@ -6,6 +6,7 @@
     <script src="three.min.js"></script>
     <script src="Stats.js"></script>
     <script src="MathUtils.js"></script>
+    <script src="Localization.js"></script>
     <script src="DefaultLocalStorage.js"></script>
     <script src="PartMeta.js"></script>
     <script src="Part.js"></script>
@@ -77,6 +78,23 @@
             АДМИРАЛ: <br> Нарушители уже на подходе. Необходимо
             срочно их перехватить, пока они не высадили десант.</p>
     </div>
+
+    <div id="moneyToSpent"
+        style="position: absolute; top: 50px; text-align: center; width: 100%; font-size: 140%; font-family:'Lucida Console', Monaco, monospace;">
+        Доступно средств: 1000$ </div>
+
+    <div id="infoBlock"
+        style="display: none; background-color: #453E78; position: absolute; left: 10px; top: 10%; width: 20%; font-family:'Lucida Console', Monaco, monospace;">
+        <div id="infoBlockTitle" style="text-align: center;">Двигатель</div>
+        <div id="infoBlockDescription" style="padding-left: 10px; padding-right: 10px;">
+            Позволяет ускориться при нажатии W<br>
+            Огнеопасный блок
+        </div>
+    </div>
+
+    <button id="nextMissionButton" style="display: none; position: absolute; top: 60px; text-align: center; width: 20%; font-size: 140%; font-family:'Lucida Console', Monaco, monospace; left: 50%;
+    transform: translate(-50%,-50%);" onclick="appGlobal.nextMission()">Следующая
+        миссия</button>
 
 </body>
 

@@ -33,6 +33,7 @@ class PartMeta {
         /** @type {PartEffect[]} */
         this.effects = [];
         this.canFireNearBlocksOnBreak = false;
+        this.price = 10;
     }
 
     AddAllConnections() {

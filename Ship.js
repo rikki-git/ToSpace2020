@@ -398,14 +398,20 @@ class Ship {
                 let y = part.tileY + c.dy;
                 let indx = x + "_" + y;
                 places[indx] = { x: x, y: y, connectionSources: {}, block: true };
+                if (x > 0) {
+                    let x2 = -x;
+                    let indx2 = x2 + "_" + y;
+                    places[indx2] = { x: x2, y: y, connectionSources: {}, block: true };
+                }
             }
         }
 
         for (let i in places) {
             let place = places[i];
 
-            if (place.block)
+            if (place.block) {
                 continue;
+            }
 
             let oldPart = this.GetPart(place.x, place.y);
             if (oldPart == null) {

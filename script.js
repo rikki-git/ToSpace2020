@@ -60,6 +60,14 @@ class App {
             PartsMeta[i] = meta;
         }
 
+        this.sidorovichText = document.getElementById("sidorovichText");
+        this.sidorovichContainer = document.getElementById("sidorovichContainer");
+        this.infoBlock = document.getElementById("infoBlock");
+        this.infoBlockTitle = document.getElementById("infoBlockTitle");
+        this.infoBlockDescription = document.getElementById("infoBlockDescription");
+        this.moneyToSpent = document.getElementById("moneyToSpent");
+        this.nextMissionButton = document.getElementById("nextMissionButton");
+
         CreateMissions();
 
         this.rareUpdateCounter = 0;
@@ -107,6 +115,8 @@ class App {
 
         /** @type {SimpleSprite} */
         this.target = null;
+
+        this.money = 0;
     }
 
     InitialSpawn() {
@@ -126,9 +136,6 @@ class App {
         this.sceneBg.add(this.bg2);
         this.sceneBg.add(this.bg3);
 
-        this.sidorovichText = document.getElementById("sidorovichText");
-        this.sidorovichContainer = document.getElementById("sidorovichContainer");
-
         this.currentTask = -1;
         this.currentReplic = -1;
         this.currentMission = '';
@@ -143,6 +150,9 @@ class App {
         this.replicTime = -1;
         this.sidorovichContainer.style.display = "none";
         this.sidorovichText.innerHTML = "";
+        this.infoBlock.style.display = "none";
+        this.money = 0;
+        this.nextMissionButton.style.display = "none";
 
         for (let i = this.ships.length - 1; i >= 0; i--) {
             let c = this.ships[i];
@@ -172,6 +182,20 @@ class App {
             part.Dispose(this.groupLoot);
             this.groupLoot.remove(c);
         }
+    }
+
+    updateMoneyToSpent() {
+        if (this.money <= 0)
+            this.moneyToSpent.style.display = "none";
+        else {
+            this.moneyToSpent.style.display = "block";
+            this.moneyToSpent.innerHTML = Localization.Get("MoneyToSpent") + this.money + Localization.Get("PriceCurrency");
+        }
+    }
+
+    nextMission() {
+        let mission = Missions[this.currentMission];
+        this.startMission(mission.nextMission);
     }
 
     /**
@@ -219,6 +243,8 @@ class App {
             }
         }
 
+        this.money = Missions[this.currentMission].money;
+        this.updateMoneyToSpent();
         this.startNextTask();
     }
 
@@ -230,6 +256,8 @@ class App {
                 part.Dispose(this.groupLoot);
                 this.groupLoot.remove(c);
             }
+            this.money = 0;
+            this.updateMoneyToSpent();
         }
 
         let nextTask = this.currentTask + 1;
@@ -314,6 +342,8 @@ class App {
                     player.ArrowTo(x, y, "arrowRed");
                 }
             }
+        } else if (task.type == TaskTypes.Complete) {
+            this.nextMissionButton.style.display = "block";
         }
     }
 
@@ -335,7 +365,7 @@ class App {
 
         this.currentReplic = nextReplic;
         let replic = task.replics[this.currentReplic];
-        let txt = Replics.Get(replic);
+        let txt = Localization.Get(replic);
         this.replicTime = 7;
         this.sidorovichText.innerHTML = txt;
         this.sidorovichContainer.style.display = "block";
@@ -444,9 +474,14 @@ class App {
                 })[0];
                 if (res && res.object) {
                     this.undermouseLoot = res.object;
+                    let part = this.getPartFromTObject(this.undermouseLoot);
+                    this.showInfoBlock(part);
                 }
             }
         }
+
+        if (this.undermouseLoot == null)
+            this.hideInfoBlock();
 
         for (let i = this.ships.length - 1; i >= 0; i--) {
             let c = this.ships[i];
@@ -579,6 +614,9 @@ class App {
 
         if (this.undermousePreview != null) {
             if (player != null) {
+                let part = this.getPartFromTObject(this.undermousePreview);
+                this.money -= part.partMeta.price;
+                this.updateMoneyToSpent();
                 player.ApplyPreview(this.undermousePreview);
                 this.undermousePreview = null;
             }
@@ -588,10 +626,37 @@ class App {
             let part = this.getPartFromTObject(this.undermouseLoot);
             const partName = part.partName;
             this.undermouseLoot = null;
-
-            if (player != null)
+            if (player != null && part.partMeta.price <= this.money)
                 player.ShowPlaceable(partName);
         }
+    }
+
+    hideInfoBlock() {
+        this.infoBlock.style.display = "none";
+    }
+
+    /** 
+     * @param {Part} part
+     */
+    showInfoBlock(part) {
+        this.infoBlock.style.display = "block";
+        let title = part.partName;
+        let keyTitle = "PartName_" + part.partName;
+        if (Localization.HasKey(keyTitle))
+            title = Localization.Get(keyTitle);
+        this.infoBlockTitle.innerHTML = "<b>" + title + "</b>";
+
+        let descr = Localization.Get("Price") + part.partMeta.price.toString() + Localization.Get("PriceCurrency");
+        descr += "<hr>";
+
+        let keyDescription = "PartDescr_" + part.partName;
+        if (Localization.HasKey(keyDescription))
+            descr += Localization.Get(keyDescription);
+
+        if (part.partMeta.canFireNearBlocksOnBreak)
+            descr += "<br>" + Localization.Get("CanFireNearBlocksOnBreak");
+
+        this.infoBlockDescription.innerHTML = descr;
     }
 
     /**
@@ -841,6 +906,7 @@ window.onload = function () {
     PartsMeta[Parts.turret_03].connections.push(new Connection(-1, 0));
     PartsMeta[Parts.turret_03].fireRate = 0.3;
     PartsMeta[Parts.turret_03].flipPartName = Parts.flip_turret_03;
+    PartsMeta[Parts.turret_03].price = 40;
 
     PartsMeta[Parts.flip_turret_03].connections.push(new Connection(1, 0));
     PartsMeta[Parts.flip_turret_03].fireRate = 0.3;
@@ -848,6 +914,7 @@ window.onload = function () {
 
     PartsMeta[Parts.turret_02].connections.push(new Connection(0, -1));
     PartsMeta[Parts.turret_02].fireRate = 0.3;
+    PartsMeta[Parts.turret_02].price = 40;
 
     PartsMeta[Parts.bridge].connections.push(new Connection(0, -1));
     PartsMeta[Parts.bridge].connections.push(new Connection(0, 1));
@@ -861,12 +928,14 @@ window.onload = function () {
     PartsMeta[Parts.engine].effects.push(new PartEffect(0, -scaledTileGlobal, "engineFire"));
     PartsMeta[Parts.engine].blockConnections.push(new Connection(0, -1));
     PartsMeta[Parts.engine].canFireNearBlocksOnBreak = true;
+    PartsMeta[Parts.engine].price = 50;
 
     PartsMeta[Parts.engine_e].connections.push(new Connection(0, 1));
     PartsMeta[Parts.engine_e].acceleration = 20;
     PartsMeta[Parts.engine_e].effects.push(new PartEffect(0, -scaledTileGlobal, "engineFire"));
     PartsMeta[Parts.engine_e].blockConnections.push(new Connection(0, -1));
     PartsMeta[Parts.engine_e].canFireNearBlocksOnBreak = true;
+    PartsMeta[Parts.engine_e].price = 50;
 
     PartsMeta[Parts.hub].AddAllConnections();
     PartsMeta[Parts.hcube].AddAllConnections();
@@ -876,6 +945,7 @@ window.onload = function () {
     PartsMeta[Parts.gyro_00].AddAllConnections();
     PartsMeta[Parts.gyro_00].rotateSpeed = 7;
     PartsMeta[Parts.gyro_00].canFireNearBlocksOnBreak = true;
+    PartsMeta[Parts.gyro_00].price = 30;
 
     PartsMeta[Parts.canon].AddAllConnections();
     PartsMeta[Parts.canon].fireRate = 5;
