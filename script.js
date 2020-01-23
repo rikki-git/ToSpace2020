@@ -67,11 +67,17 @@ class App {
         this.infoBlockDescription = document.getElementById("infoBlockDescription");
         this.moneyToSpent = document.getElementById("moneyToSpent");
         this.nextMissionButton = document.getElementById("nextMissionButton");
+        this.sidtalk = document.getElementById("sidtalk");
+        this.sideye = document.getElementById("sideye");
 
         CreateMissions();
 
         this.rareUpdateCounter = 0;
         this.rareUpdateInterval = 0.06;
+
+        this.sidtalkTime = 0;
+        this.sideyeTime = 0;
+        this.prevSidEye = 1;
 
         let width = window.innerWidth;
         let height = window.innerHeight;
@@ -386,11 +392,17 @@ class App {
         let width = window.innerWidth;
         let height = window.innerHeight;
 
-        this.camera.left = - width / 2;
+        this.camera.left = -width / 2;
         this.camera.right = width / 2;
         this.camera.top = height / 2;
-        this.camera.bottom = - height / 2;
+        this.camera.bottom = -height / 2;
         this.camera.updateProjectionMatrix();
+
+        this.cameraBg.left = -width / 2;
+        this.cameraBg.right = width / 2;
+        this.cameraBg.top = height / 2;
+        this.cameraBg.bottom = -height / 2;
+        this.cameraBg.updateProjectionMatrix();
 
         this.renderer.setSize(window.innerWidth, window.innerHeight);
     }
@@ -434,6 +446,32 @@ class App {
             this.replicTime -= dt;
             if (this.replicTime <= 0)
                 this.startNextReplic();
+        }
+
+        if (this.sidorovichContainer.style.display == "block") {
+            if (this.replicTime > 4) {
+                this.sidtalkTime -= dt;
+                if (this.sidtalkTime < 0) {
+                    this.sidtalk.setAttribute("src", "images/sidtalk" + MathUtils.randomInt(1, 4) + ".png");
+                    this.sidtalkTime = 0.1;
+                }
+            }
+            else
+                this.sidtalk.setAttribute("src", "images/sidtalk1.png");
+
+            this.sideyeTime -= dt;
+            if (this.sideyeTime < 0) {
+                if (this.prevSidEye == 1) {
+                    this.prevSidEye = MathUtils.randomInt(2, 3);
+                    this.sideyeTime = 2 + Math.random() * 2;
+                }
+                else {
+                    this.prevSidEye = 1;
+                    this.sideyeTime = 0.1;
+                }
+
+                this.sideye.setAttribute("src", "images/sideye" + this.prevSidEye + ".png");
+            }
         }
 
         let rareUpdate = false;
