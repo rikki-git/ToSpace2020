@@ -19,7 +19,14 @@ class Rocket {
         let initialSpeedLen = initialSpeed.length();
 
         this.rocketType = rocketType;
-        this.tObject = new THREE.Sprite(AppTextures.materials[this.rocketType].clone());
+
+        let textureName = this.rocketType;
+
+        if (this.rocketType == RocketTypes.laserBullet && team == playerTeam) {
+            textureName = "laserBulletBlue";
+        }
+
+        this.tObject = new THREE.Sprite(AppTextures.materials[textureName].clone());
         this.tObject.position.set(x, y, 0);
         this.tObject.scale.set(scaledTileGlobal, scaledTileGlobal, 1.0);
         this.mover = new ShipMover();

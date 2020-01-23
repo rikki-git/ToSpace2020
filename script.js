@@ -10,6 +10,8 @@ const NoTeam = "";
 /** @type {Object.<string, PartMeta>} */
 const PartsMeta = {}
 
+const playerTeam = 'playerTeam';
+
 const Parts = {
     cabin: 0,
     cabin_e: 0,
@@ -234,11 +236,11 @@ class App {
                 new Part(partName, this.groupLoot, x, y, 0, 0, false, true, NoTeam);
             }
 
-            let player = new Ship(this.scene, this.ships, "team1", "Mini");
+            let player = new Ship(this.scene, this.ships, playerTeam, "Mini");
             player.controller = new PlayerShip();
         }
         else {
-            let player = new Ship(this.scene, this.ships, "team1", "Cube");
+            let player = new Ship(this.scene, this.ships, playerTeam, "Cube");
             player.controller = new PlayerShip();
             let mission = Missions[this.currentMission];
             let spacing = 100;
@@ -282,6 +284,14 @@ class App {
         this.currentTask = nextTask;
         let task = mission.tasks[this.currentTask];
 
+        for (let i = 0; i < task.initialShips.length; i++) {
+            let data = task.initialShips[i];
+            let bot = new Ship(this.scene, this.ships, data.team, data.name);
+            bot.controller = new BotShip();
+            bot.tObject.position.x = data.x;
+            bot.tObject.position.y = data.y;
+        }
+
         if (task.type == TaskTypes.GoTo) {
             this.target = new SimpleSprite(this.scene, this.effects, task.x, task.y, "target", 128);
             let player = this.getPlayer();
@@ -289,13 +299,13 @@ class App {
                 player.ArrowTo(task.x, task.y, "arrow");
         }
         else if (task.type == TaskTypes.Kill) {
-            for (let i = 0; i < task.shipsCount; i++) {
-                for (let j = 0; j < task.ships.length; j++) {
+            for (let j = 0; j < task.ships.length; j++) {
+                for (let i = 0; i < task.shipsCount[j]; i++) {
                     let name = task.ships[j];
                     let bot = new Ship(this.scene, this.ships, "team2", name);
                     bot.controller = new BotShip();
-                    bot.tObject.position.x = task.x + i * 200;
-                    bot.tObject.position.y = task.y + j * 200;
+                    bot.tObject.position.x = task.x + i * 400;
+                    bot.tObject.position.y = task.y + j * 400;
                 }
             }
         }
@@ -768,7 +778,7 @@ class App {
             p.waitDestroy = true;
         }
 
-        let player = new Ship(appGlobal.scene, appGlobal.ships, "team1", name);
+        let player = new Ship(appGlobal.scene, appGlobal.ships, playerTeam, name);
         player.controller = new PlayerShip();
 
         document.getElementById('shipsBrowser').style.display = 'none';
