@@ -99,8 +99,8 @@ function CreateMissions() {
         Editor: new Mission([], 99999, [], "Editor"),
         Tutorial: new Mission(
             [
-                MissionTask.GoTo(1000, 1000, ["TutorialStart1", "TutorialStart2", "TutorialStart3"]),
-                MissionTask.GoTo(-1000, 2000, []),
+                MissionTask.GoTo(5000, 5000, ["TutorialStart1", "TutorialStart2", "TutorialStart3"]),
+                MissionTask.GoTo(-1000, 5000, []),
                 MissionTask.GoTo(1000, 3000, ["TutorialShoot1"]),
                 MissionTask.Kill(4000, 3000, ["TutorialShoot2"], ["Drone"], [2]),
                 MissionTask.Complete(["TutorialComplete1", "TutorialComplete2"])
