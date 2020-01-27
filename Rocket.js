@@ -31,14 +31,14 @@ class Rocket {
         this.tObject.scale.set(scaledTileGlobal, scaledTileGlobal, 1.0);
         this.mover = new ShipMover();
         this.mover.dSpeed = 1;
-        this.mover.maxSpeed = initialSpeedLen + 30;
-        this.mover.acceleration = 10000;
+        this.mover.maxSpeed = initialSpeedLen + 10;
+        this.mover.acceleration = 8000;
         this.mover.speedVector = initialSpeed.clone();
 
         this.maxGapAngle = 0.15;
         this.gapAngle = (Math.random() - 0.5) * this.maxGapAngle;
         this.gapAngleSpeed = 0.02;
-        this.timer = 2 + Math.random() / 4;
+        this.timer = 4 + Math.random() / 4;
         this.damageRadius = 24;
         this.damage = 70;
 
@@ -47,6 +47,7 @@ class Rocket {
             this.timer = 1;
             this.damageRadius = 10;
             this.damage = 15;
+            this.mover.maxSpeed = initialSpeedLen + 30;
             this.mover.acceleration = 20000;
         }
 

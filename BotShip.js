@@ -9,6 +9,7 @@ class BotShip {
         this.leaveAngleTime = 1;
         this.attackWait = Math.random() * 8 + 3;
         this.requreFire = false;
+        this.canMove = true;
     }
 
     /**
@@ -21,6 +22,8 @@ class BotShip {
         this.target = null;
 
         let allTargets = [];
+        let minDist = -1;
+        let minIndx = -1;
 
         for (let i = 0; i < ships.length; i++) {
             let c = ships[i];
@@ -29,9 +32,17 @@ class BotShip {
             if (c.isBroken)
                 continue;
             allTargets.push(c);
+
+            let dist = MathUtils.distSqr(c.tObject.position.x, c.tObject.position.y, me.tObject.position.x, me.tObject.position.y);
+
+            if (minDist < 0 || dist < minDist) {
+                minDist = dist;
+                minIndx = allTargets.length - 1;
+            }
         }
 
-        this.target = allTargets[MathUtils.randomInt(0, allTargets.length - 1)];
+        if (minIndx >= 0)
+            this.target = allTargets[minIndx];
     }
 
     /**
@@ -49,7 +60,7 @@ class BotShip {
         if (this.target == null)
             return;
 
-        if (this.leaveTime > 0) {
+        if (this.canMove && this.leaveTime > 0) {
             this.leaveTime -= dt;
 
             if (this.leaveAngleTime > 0) {
@@ -74,7 +85,7 @@ class BotShip {
             this.leaveDir = Math.random() > 0.5 ? -1 : 1;
         }
         else {
-            if (dist > 200) {
+            if (!this.canMove || dist > 200) {
                 let targetAngle = Math.atan2(this.target.tObject.position.y - me.tObject.position.y, this.target.tObject.position.x - me.tObject.position.x);
                 targetAngle -= Math.PI * 0.5;
                 targetAngle = targetAngle % (Math.PI * 2);
@@ -105,16 +116,20 @@ class BotShip {
                 me.mover.deltaAngle = 0;
 
             if (dist < 1000) {
-                this.attackTime += dt;
+                if (this.canMove)
+                    this.attackTime += dt;
                 this.requreFire = true;
             }
             else if (dist < 1500) {
-                this.attackTime += dt * 0.2;
+                if (this.canMove)
+                    this.attackTime += dt * 0.2;
                 me.mover.dSpeed = 0;
                 this.requreFire = true;
             }
-            else
-                me.mover.dSpeed = 1;
+            else {
+                if (this.canMove)
+                    me.mover.dSpeed = 1;
+            }
         }
     }
 }

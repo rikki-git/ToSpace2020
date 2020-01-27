@@ -11,6 +11,7 @@ const NoTeam = "";
 const PartsMeta = {}
 
 const playerTeam = 'playerTeam';
+const enemyTeam = 'team2';
 
 const Parts = {
     cabin: 0,
@@ -287,7 +288,9 @@ class App {
         for (let i = 0; i < task.initialShips.length; i++) {
             let data = task.initialShips[i];
             let bot = new Ship(this.scene, this.ships, data.team, data.name);
-            bot.controller = new BotShip();
+            let controller = new BotShip();
+            controller.canMove = data.botType != BotTypes.Static;
+            bot.controller = controller;
             bot.tObject.position.x = data.x;
             bot.tObject.position.y = data.y;
         }
@@ -302,10 +305,10 @@ class App {
             for (let j = 0; j < task.ships.length; j++) {
                 for (let i = 0; i < task.shipsCount[j]; i++) {
                     let name = task.ships[j];
-                    let bot = new Ship(this.scene, this.ships, "team2", name);
+                    let bot = new Ship(this.scene, this.ships, enemyTeam, name);
                     bot.controller = new BotShip();
-                    bot.tObject.position.x = task.x + i * 400;
-                    bot.tObject.position.y = task.y + j * 400;
+                    bot.tObject.position.x = task.y + i * 600;
+                    bot.tObject.position.y = task.x + j * 600;
                 }
             }
         }
@@ -785,7 +788,7 @@ class App {
     }
 
     spawnShipBotFromLocalStorage(name) {
-        let bot = new Ship(appGlobal.scene, appGlobal.ships, "team2", name);
+        let bot = new Ship(appGlobal.scene, appGlobal.ships, enemyTeam, name);
         bot.controller = new BotShip();
         bot.tObject.position.y = 1000;
         return bot;
@@ -1001,6 +1004,7 @@ window.onload = function () {
     PartsMeta[Parts.canon].fireMiniDelay = 0.2;
     PartsMeta[Parts.canon].fireRocketType = RocketTypes.rocket;
     PartsMeta[Parts.canon].canFireNearBlocksOnBreak = true;
+    PartsMeta[Parts.canon].price = 70;
 
     PartsMeta[Parts.laser].AddAllConnections();
     PartsMeta[Parts.laser].canFireNearBlocksOnBreak = true;
@@ -1014,9 +1018,6 @@ window.onload = function () {
     stats.domElement.style.position = 'absolute';
     stats.domElement.style.top = '0';
     document.body.appendChild(stats.domElement);
-
-    // let ctx = domElement.getContext('2d');
-    // ctx.imageSmoothingEnabled = false;
 
     let animationFrame;
     animationFrame = function animationFrame() {

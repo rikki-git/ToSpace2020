@@ -181,7 +181,7 @@ class Part {
             }
             else {
 
-                target.timer -= dt * 3;
+                target.timer -= dt * 6;
 
                 if (this.line == null) {
                     this.lineMaterial = new THREE.LineBasicMaterial({ color: 0xBDFFCA });
