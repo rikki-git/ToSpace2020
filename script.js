@@ -44,6 +44,7 @@ const Parts = {
     laser: 0,
     turret_02: 0,
     canon: 0,
+    heal: 0,
 }
 
 for (let i in Parts) {
@@ -537,6 +538,10 @@ class App {
         for (let i = this.ships.length - 1; i >= 0; i--) {
             let c = this.ships[i];
 
+            if (c.requireUpdateStats) {
+                c.UpdateShipStats();
+            }
+
             c.Update(dt, rareUpdate);
             c.Control(this.keys, this.ships, dt, rareUpdate);
 
@@ -870,6 +875,14 @@ window.onload = function () {
         app.animators.push(new TextureAnimator(t, 16, 1, 16, 100));
     }
 
+    AppTextures.callbacks.heal = function (t) {
+        app.animators.push(new TextureAnimator(t, 8, 1, 8, 100));
+    }
+
+    AppTextures.callbacks.healFx = function (t) {
+        app.animators.push(new TextureAnimator(t, 4, 1, 4, 100));
+    }
+
     AppTextures.callbacks.engineFire = function (t) {
         app.animators.push(new TextureAnimator(t, 4, 1, 4, 100));
     }
@@ -992,6 +1005,12 @@ window.onload = function () {
     PartsMeta[Parts.hcube].AddAllConnections();
     PartsMeta[Parts.block].AddAllConnections();
     PartsMeta[Parts.bridge_cross].AddAllConnections();
+
+    PartsMeta[Parts.heal].AddAllConnections();
+    PartsMeta[Parts.heal].price = 200;
+    PartsMeta[Parts.heal].hp = 30;
+    PartsMeta[Parts.heal].healTime = 1;
+    PartsMeta[Parts.heal].healValue = 20;
 
     PartsMeta[Parts.gyro_00].AddAllConnections();
     PartsMeta[Parts.gyro_00].rotateSpeed = 7;

@@ -98,7 +98,7 @@ class Mission {
 /** @type {Object.<string, Mission>} */
 let Missions = null;
 
-const Mission1Start = MissionTask.GoTo(0, 1000, ["Mission1_1", "Mission1_2", "Mission1_3"]);
+const Mission1Start = MissionTask.GoTo(0, 1000, ["Mission1_1", "Mission1_3"]);
 Mission1Start.initialShips.push(new ShipData("Fighter-1", -400, 0, playerTeam, BotTypes.Default));
 Mission1Start.initialShips.push(new ShipData("Fighter-1", 400, 0, playerTeam, BotTypes.Default));
 
@@ -190,18 +190,18 @@ function CreateMissions() {
                 Mission1Start,
                 MissionTask.Kill(0, 4000, [], ["NB-1"], [3]),
                 MissionTask.Kill(0, 8000, ["Mission1_busHere"], ["NB-1", "Bus-1"], [3, 1]),
-                MissionTask.Complete(["Mission1_4", "Mission1_5"])
+                MissionTask.Complete(["Mission1_4"])
             ],
             500,
             [
-                Parts.block, Parts.engine, Parts.gyro_00, Parts.turret_02, Parts.turret_03
+                Parts.block, Parts.engine, Parts.gyro_00, Parts.turret_02, Parts.turret_03, Parts.heal
             ],
             "Mission2"),
         Mission2: new Mission(
             Mision2_tasks,
             500,
             [
-                Parts.block, Parts.engine, Parts.gyro_00, Parts.turret_02, Parts.turret_03, Parts.canon
+                Parts.block, Parts.engine, Parts.gyro_00, Parts.turret_02, Parts.canon, Parts.heal
             ],
             "Editor"
         )

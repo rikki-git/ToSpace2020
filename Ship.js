@@ -21,13 +21,15 @@ class Ship {
         this.arrowName = null;
         this.arrowToX = 0;
         this.arrowToY = 0;
+        this.healValue = 0;
 
         this.Rotate(0);
         scene.add(this.tObject);
         ships.push(this);
         this.isBroken = false;
         this.waitDestroy = false;
-        this.UpdateShipStats();
+        this.requireUpdateStats = true;
+        this.hasLivingHeal = false;
     }
 
     ArrowTo(x, y, sprite) {
@@ -79,15 +81,18 @@ class Ship {
         }
 
         this.Rotate(this.tObject.rotation.z);
-        this.UpdateShipStats();
+        this.requireUpdateStats = true;
     }
 
     UpdateShipStats() {
+        this.requireUpdateStats = false;
+
         let mass = 0;
         let maxSpeed = 3;
         let acceleration = 0;
         let rotateSpeed = 0;
         let hasLivingParts = false;
+        this.hasLivingHeal = false;
 
         for (let i = 0; i < this.parts.length; i++) {
             let part = this.parts[i];
@@ -98,6 +103,9 @@ class Ship {
                 continue;
 
             hasLivingParts = true;
+
+            if (meta.healTime > 0)
+                this.hasLivingHeal = true;
 
             acceleration += meta.acceleration;
 
@@ -224,18 +232,31 @@ class Ship {
         for (let i = 0; i < this.parts.length; i++) {
             let part = this.parts[i];
 
-            if (part.isBroken)
-                continue;
+            if (part.isBroken) {
+                if (this.healValue > 0) {
+                    this.healValue = part.Heal(this.healValue);
+                    if (!part.isBroken)
+                        this.requireUpdateStats = true;
+                }
+                else {
+                    if (!this.hasLivingHeal) {
+                        if (part.healFx != null)
+                            part.healFx.visible = false;
+                    }
+                    continue;
+                }
+            }
 
             let pos = new THREE.Vector3();
             part.tObject.getWorldPosition(pos);
 
-            // TODO: do not search already known part
             if (part.isBurning) {
                 part.burnDamageTime -= dt;
                 if (part.burnDamageTime < 0) {
                     part.burnDamageTime = part.burnDamageCooldown;
-                    this.ApplyDamage(pos.x, pos.y, 10, 999);
+                    this.ApplyDamageToPart(part, 99999);
+                    if (part.isBroken)
+                        this.requireUpdateStats = true;
                 }
             }
 
@@ -246,6 +267,12 @@ class Ship {
             }
 
             part.Update(dt, rareUpdate);
+
+            if (part.timeToHeal && this.healValue < 1) {
+                this.healValue += part.partMeta.healValue;
+                part.timeToHeal = false;
+                part.healTimer = part.partMeta.healTime;
+            }
 
             if (part.fireMiniCount == 0 && part.partMeta.fireRate > 0) {
                 if (part.fireTime <= 0) {
@@ -272,9 +299,41 @@ class Ship {
             this.controller.Control(this, keys, ships, dt, isRareUpdate);
     }
 
+    /**
+    * @param {Part} part
+    */
+    ApplyFireByPartBroke(part) {
+        if (part.partMeta.canFireNearBlocksOnBreak) {
+            for (var j = 0; j < part.partMeta.connections.length; j++) {
+                let connection = part.partMeta.connections[j];
+                let x = part.tileX + connection.dx;
+                let y = part.tileY + connection.dy;
+                let indx = x + "_" + y;
+
+                if (this.partsHash.hasOwnProperty(indx)) {
+                    /** @type {Part} */
+                    let p = this.partsHash[indx];
+                    if (!p.isBroken && !p.isPreview && !p.isBurning) {
+                        p.Burn();
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 
+     * @param {Part} part 
+     * @param {number} damage 
+     */
+    ApplyDamageToPart(part, damage) {
+        part.ApplyDamage(damage);
+        if (part.isBroken)
+            this.ApplyFireByPartBroke(part);
+    }
+
     ApplyDamage(x, y, radius, damage) {
         let haveBrokenParts = false;
-        let fireTargets = {};
 
         for (let i = 0; i < this.parts.length; i++) {
             let part = this.parts[i];
@@ -285,32 +344,13 @@ class Ship {
                 part.ApplyDamage(damage);
                 if (part.isBroken) {
                     haveBrokenParts = true;
-                    if (part.partMeta.canFireNearBlocksOnBreak) {
-                        for (var j = 0; j < part.partMeta.connections.length; j++) {
-                            let connection = part.partMeta.connections[j];
-                            let x = part.tileX + connection.dx;
-                            let y = part.tileY + connection.dy;
-                            let indx = x + "_" + y;
-                            fireTargets[indx] = 1;
-                        }
-                    }
+                    this.ApplyFireByPartBroke(part);
                 }
             }
         }
 
-        if (haveBrokenParts) {
-            this.UpdateShipStats();
-
-            for (let t in fireTargets) {
-                if (this.partsHash.hasOwnProperty(t)) {
-                    /** @type {Part} */
-                    let p = this.partsHash[t];
-                    if (!p.isBroken && !p.isPreview) {
-                        p.Burn();
-                    }
-                }
-            }
-        }
+        if (haveBrokenParts)
+            this.requireUpdateStats = true;
     }
 
     ApplyPreview(preview) {
@@ -327,7 +367,7 @@ class Ship {
         }
 
         this.Rotate(this.tObject.rotation.z);
-        this.UpdateShipStats();
+        this.requireUpdateStats = true;
     }
 
     Dispose() {

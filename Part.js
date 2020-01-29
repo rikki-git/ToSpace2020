@@ -17,6 +17,10 @@ class Part {
         this.hp = this.partMeta.hp;
         /** @type {THREE.Sprite[]} */
         this.effects = [];
+        /** @type {THREE.Sprite} */
+        this.fxFire = null;
+        /** @type {THREE.Sprite} */
+        this.healFx = null;
 
         if (this.partMeta == null)
             throw new Error("partMeta not found: " + partName);
@@ -60,6 +64,9 @@ class Part {
         this.line = null;
         this.lineGeometry = null;
 
+        this.timeToHeal = false;
+        this.healTimer = this.partMeta.healTime;
+
         if (!this.isPreview && !this.isLoot) {
             for (let i = 0; i < this.partMeta.effects.length; i++) {
                 let fx = this.partMeta.effects[i];
@@ -75,6 +82,47 @@ class Part {
         }
     }
 
+    /**
+     * 
+     * @param {number} healValue 
+     * @returns {number}
+     */
+    Heal(healValue) {
+        if (this.partMeta.healTime > 0)
+            return healValue;
+
+        let wasteHeal = Math.min(healValue, this.partMeta.hp + 1); // Float error?
+        this.hp += wasteHeal;
+
+        if (this.hp >= this.partMeta.hp) {
+            this.hp = this.partMeta.hp;
+            this.isBroken = false;
+            this.isBurning = false;
+            if (this.fxFire != null)
+                this.fxFire.visible = false;
+            this.SetMaterial(this.defaultMaterialName);
+            this.tObject.material.color.set('#FFFFFF');
+
+            if (this.healFx != null)
+                this.healFx.visible = false;
+
+            this.UpdateMaterial();
+        }
+        else {
+            if (this.healFx == null) {
+                let fxSprite = new THREE.Sprite(AppTextures.materials.healFx.clone());
+                this.parent.add(fxSprite);
+                fxSprite.position.set(this.tObject.position.x, this.tObject.position.y, 0);
+                fxSprite.scale.set(scaledTileGlobal, scaledTileGlobal, 1.0);
+                this.healFx = fxSprite;
+            }
+            else
+                this.healFx.visible = true;
+        }
+
+        return healValue - wasteHeal;
+    }
+
     Fire(speed, angle) {
         let pos = new THREE.Vector3();
         this.tObject.getWorldPosition(pos);
@@ -86,11 +134,15 @@ class Part {
             return;
         this.isBurning = true;
 
-        let fxSprite = new THREE.Sprite(AppTextures.materials.fire.clone());
-        this.parent.add(fxSprite);
-        fxSprite.position.set(this.tObject.position.x, this.tObject.position.y, 0);
-        fxSprite.scale.set(scaledTileGlobal, scaledTileGlobal, 1.0);
-        this.effects.push(fxSprite);
+        if (this.fxFire != null)
+            this.fxFire.visible = true;
+        else {
+            let fxSprite = new THREE.Sprite(AppTextures.materials.fire.clone());
+            this.parent.add(fxSprite);
+            fxSprite.position.set(this.tObject.position.x, this.tObject.position.y, 0);
+            fxSprite.scale.set(scaledTileGlobal, scaledTileGlobal, 1.0);
+            this.fxFire = fxSprite;
+        }
     }
 
     UpdateReadyToFire() {
@@ -133,6 +185,13 @@ class Part {
         }
 
         this.UpdateReadyToFire();
+
+        if (this.partMeta.healTime > 0 && !this.timeToHeal) {
+            this.healTimer -= dt;
+            if (this.healTimer <= 0) {
+                this.timeToHeal = true;
+            }
+        }
 
         if (this.partName == Parts.laser) {
 
@@ -220,21 +279,7 @@ class Part {
             new Explosion(appGlobal.scene, appGlobal.effects, pos.x, pos.y, Explosions.explosion64);
             this.hp = 0;
             this.isBroken = true;
-            for (let i = 0; i < this.effects.length; i++) {
-                let fx = this.effects[i];
-                fx.visible = false;
-            }
-            if (this.line != null)
-                this.line.visible = false;
-            this.UpdateMaterial();
-        }
-    }
 
-    UpdateMaterial() {
-        if (this.isPreview)
-            return;
-
-        if (this.isBroken) {
             let damagedMaterial = this.defaultMaterialName + "_d";
             if (AppTextures.materials[damagedMaterial] != null) {
                 this.SetMaterial(damagedMaterial);
@@ -244,8 +289,25 @@ class Part {
                 this.SetMaterial(this.defaultMaterialName);
                 this.tObject.material.color.set('#3F3F3F');
             }
-            return;
+
+            this.isBurning = false;
+            if (this.fxFire != null)
+                this.fxFire.visible = false;
+            for (let i = 0; i < this.effects.length; i++) {
+                let fx = this.effects[i];
+                fx.visible = false;
+            }
+            if (this.line != null)
+                this.line.visible = false;
         }
+    }
+
+    UpdateMaterial() {
+        if (this.isPreview)
+            return;
+
+        if (this.isBroken)
+            return;
 
         for (let i = 0; i < this.effects.length; i++) {
             let fx = this.effects[i];
@@ -256,11 +318,10 @@ class Part {
         }
 
         if (this.partMeta.materialIdle != null && this.partMeta.materialMove != null) {
-            let stateChanged = false;
             if (this.moving)
-                stateChanged = this.SetMaterial(this.partMeta.materialMove);
+                this.SetMaterial(this.partMeta.materialMove);
             else
-                stateChanged = this.SetMaterial(this.partMeta.materialIdle);
+                this.SetMaterial(this.partMeta.materialIdle);
         }
     }
 
@@ -306,6 +367,19 @@ class Part {
             let fx = this.effects[i];
             parent.remove(fx);
             fx.material.dispose();
+        }
+        this.effects.length = 0;
+
+        if (this.fxFire != null) {
+            parent.remove(this.fxFire);
+            this.fxFire.material.dispose();
+            this.fxFire = null;
+        }
+
+        if (this.healFx != null) {
+            parent.remove(this.healFx);
+            this.healFx.material.dispose();
+            this.healFx = null;
         }
     }
 }

@@ -21,6 +21,8 @@ class PartMeta {
         /** @type {Connection[]} */
         this.blockConnections = [];
         this.fireRate = 0;
+        this.healTime = 0;
+        this.healValue = 0;
         this.fireRocketType = RocketTypes.laserBullet;
         this.fireMiniCount = 1;
         this.fireMiniDelay = 0;
