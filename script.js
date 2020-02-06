@@ -448,9 +448,13 @@ class App {
                 material.color.set('#fff');
         }
 
+        //this.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
         this.renderer.render(this.sceneBg, this.cameraBg);
         this.renderer.clearDepth();
         this.renderer.render(this.scene, this.camera);
+        this.renderer.clearDepth();
+        //this.renderer.setViewport(window.innerWidth * 3 / 4, window.innerHeight * 3 / 4, window.innerWidth / 4, window.innerHeight / 4);
+        //this.renderer.render(this.scene, this.cameraEnemy);
     }
 
     update() {
@@ -546,17 +550,21 @@ class App {
             c.Control(this.keys, this.ships, dt, rareUpdate);
 
             if (c.controller != null && c.controller.isPlayer === true) {
+                const zoom = this.camera.zoom;
+                const deltaX = (c.tObject.position.x - this.camera.position.x) * zoom;
+                const deltaY = (c.tObject.position.y - this.camera.position.y) * zoom;
+
                 this.camera.position.x = c.tObject.position.x;
                 this.camera.position.y = c.tObject.position.y;
-                this.bg.material.map.offset.x = c.tObject.position.x / 1400;
-                this.bg.material.map.offset.y = c.tObject.position.y / 1400;
-                this.bg3.material.map.offset.x = c.tObject.position.x / 1300;
-                this.bg3.material.map.offset.y = c.tObject.position.y / 1300;
-                this.bg2.material.map.offset.x = c.tObject.position.x / 1000;
-                this.bg2.material.map.offset.y = c.tObject.position.y / 1000;
 
-                if (rareUpdate)
-                    this.checkTaskComplete();
+                this.bg.material.map.offset.x += deltaX / 1400;
+                this.bg.material.map.offset.y += deltaY / 1400;
+                this.bg3.material.map.offset.x += deltaX / 1300;
+                this.bg3.material.map.offset.y += deltaY / 1300;
+                this.bg2.material.map.offset.x += deltaX / 1000;
+                this.bg2.material.map.offset.y += deltaY / 1000;
+
+                this.checkTaskComplete();
             }
 
             if (c.waitDestroy) {
@@ -988,14 +996,14 @@ window.onload = function () {
     PartsMeta[Parts.bridgeT].connections.push(new Connection(1, 0));
 
     PartsMeta[Parts.engine].connections.push(new Connection(0, 1));
-    PartsMeta[Parts.engine].acceleration = 20;
+    PartsMeta[Parts.engine].acceleration = 10;
     PartsMeta[Parts.engine].effects.push(new PartEffect(0, -scaledTileGlobal, "engineFire"));
     PartsMeta[Parts.engine].blockConnections.push(new Connection(0, -1));
     PartsMeta[Parts.engine].canFireNearBlocksOnBreak = true;
     PartsMeta[Parts.engine].price = 50;
 
     PartsMeta[Parts.engine_e].connections.push(new Connection(0, 1));
-    PartsMeta[Parts.engine_e].acceleration = 20;
+    PartsMeta[Parts.engine_e].acceleration = 10;
     PartsMeta[Parts.engine_e].effects.push(new PartEffect(0, -scaledTileGlobal, "engineFire"));
     PartsMeta[Parts.engine_e].blockConnections.push(new Connection(0, -1));
     PartsMeta[Parts.engine_e].canFireNearBlocksOnBreak = true;

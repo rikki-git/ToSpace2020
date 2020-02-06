@@ -110,7 +110,7 @@ class Ship {
             acceleration += meta.acceleration;
 
             if (meta.acceleration > 0)
-                maxSpeed = 10;
+                maxSpeed = 5;
 
             rotateSpeed += meta.rotateSpeed;
         }

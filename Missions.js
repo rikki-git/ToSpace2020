@@ -131,7 +131,7 @@ for (let i = 1; i < 4; i++) {
 
 // WAVE 1
 const Mission2_wave1 = MissionTask.Kill(0, 0, ["Mission2_4"], [], []);
-for (let i = 0; i < 3; i++) {
+for (let i = 0; i < 2; i++) {
     const dist = 3000;
     Mission2_wave1.initialShips.push(new ShipData("R-1", 7000, 5000 + i * dist, enemyTeam, BotTypes.Default));
 }
